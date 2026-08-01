@@ -33,6 +33,7 @@ assert.ok(Card, "the custom element should be registered");
 
 const card = new Card();
 card.setConfig({ language: "en", step_goal: 10000 });
+globalThis.localStorage.setItem("health-bridge-dashboard-card:expanded:alice", "none");
 card.hass = {
   language: "en",
   states: {
@@ -70,6 +71,12 @@ assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expan
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
 assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 720 270"/);
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
+card._toggleChart("heart");
+assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
+card._toggleChart("activity");
+assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
+assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="false"/);
 assert.deepEqual(card.getGridOptions(), { columns: 12, min_columns: 4 });
 assert.equal(window.customCards[0].type, "health-bridge-dashboard-card");
 
