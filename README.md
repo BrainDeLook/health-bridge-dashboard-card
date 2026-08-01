@@ -17,7 +17,7 @@ Mushroom, card-mod, or any other frontend dependency.
 ## Features
 
 - Automatic profile and entity discovery
-- Responsive desktop and mobile layout
+- Compact layout that adapts to the card's own width in Masonry and Sections views
 - Current activity, sleep, cardiovascular, and body-composition metrics
 - Seven-day activity chart
 - Stacked sleep-stage chart

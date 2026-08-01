@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.1.0
+/* Health Bridge Dashboard Card v0.2.0
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.1.0";
+const HB_VERSION = "0.2.0";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -83,7 +83,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
   getCardSize() { return 12; }
 
   getGridOptions() {
-    return { columns: 12, min_columns: 6, rows: 12, min_rows: 6 };
+    return { columns: 12, min_columns: 4 };
   }
 
   _lang() {
@@ -172,36 +172,36 @@ class HealthBridgeDashboardCard extends HTMLElement {
 
   _styles() {
     return `<style>
-      :host { display:block; --hb-blue:#4c8dff; --hb-orange:#ff8a4c; --hb-red:#f05b67; --hb-cyan:#35b9c7; --hb-indigo:#6d66d8; }
-      ha-card { overflow:hidden; padding:20px; color:var(--primary-text-color); background:var(--ha-card-background,var(--card-background-color)); }
+      :host { display:block; container-type:inline-size; --hb-blue:#4c8dff; --hb-orange:#ff8a4c; --hb-red:#f05b67; --hb-cyan:#35b9c7; --hb-indigo:#6d66d8; }
+      ha-card { overflow:hidden; padding:14px; color:var(--primary-text-color); background:var(--ha-card-background,var(--card-background-color)); }
       * { box-sizing:border-box; }
-      .header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px; }
-      h1 { margin:0; font-size:24px; line-height:1.2; letter-spacing:-.025em; }
-      .eyebrow { display:flex; gap:8px; align-items:center; margin-top:7px; color:var(--secondary-text-color); font-size:13px; }
+      .header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+      h1 { margin:0; font-size:20px; line-height:1.2; letter-spacing:-.025em; }
+      .eyebrow { display:flex; gap:7px; align-items:center; margin-top:5px; color:var(--secondary-text-color); font-size:12px; }
       .sync-dot { width:7px; height:7px; border-radius:50%; background:#4caf72; box-shadow:0 0 0 4px color-mix(in srgb,#4caf72 16%,transparent); }
-      .user-chip { padding:7px 10px; border-radius:999px; background:var(--secondary-background-color); color:var(--secondary-text-color); font-size:12px; white-space:nowrap; }
-      .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-      .metric { appearance:none; border:1px solid var(--divider-color); border-radius:16px; min-height:92px; padding:14px; background:color-mix(in srgb,var(--card-background-color) 94%,var(--hb-color)); color:var(--primary-text-color); display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer; font:inherit; transition:transform .15s ease,border-color .15s ease; }
+      .user-chip { padding:6px 9px; border-radius:999px; background:var(--secondary-background-color); color:var(--secondary-text-color); font-size:11px; white-space:nowrap; }
+      .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:8px; }
+      .metric { appearance:none; border:1px solid var(--divider-color); border-radius:13px; min-height:70px; padding:10px; background:color-mix(in srgb,var(--card-background-color) 94%,var(--hb-color)); color:var(--primary-text-color); display:flex; align-items:center; gap:9px; text-align:left; cursor:pointer; font:inherit; transition:transform .15s ease,border-color .15s ease; }
       .metric:hover { transform:translateY(-1px); border-color:color-mix(in srgb,var(--hb-color) 50%,var(--divider-color)); }
       .metric:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; }
-      .metric-icon { width:38px; height:38px; flex:0 0 38px; display:grid; place-items:center; border-radius:12px; color:var(--hb-color); background:color-mix(in srgb,var(--hb-color) 14%,transparent); }
+      .metric-icon { width:32px; height:32px; flex:0 0 32px; display:grid; place-items:center; border-radius:10px; color:var(--hb-color); background:color-mix(in srgb,var(--hb-color) 14%,transparent); }
       .metric-copy { min-width:0; display:flex; flex-direction:column; }
-      .metric-value { font-size:20px; line-height:1.15; font-weight:700; white-space:nowrap; }
-      .metric-value small { font-size:11px; font-weight:600; color:var(--secondary-text-color); }
-      .metric-label { margin-top:5px; color:var(--secondary-text-color); font-size:12px; line-height:1.2; }
+      .metric-value { font-size:17px; line-height:1.15; font-weight:700; white-space:nowrap; }
+      .metric-value small { font-size:10px; font-weight:600; color:var(--secondary-text-color); }
+      .metric-label { margin-top:3px; color:var(--secondary-text-color); font-size:11px; line-height:1.2; overflow-wrap:anywhere; }
       .blue{--hb-color:var(--hb-blue)} .orange{--hb-color:var(--hb-orange)} .red{--hb-color:var(--hb-red)} .cyan{--hb-color:var(--hb-cyan)} .indigo{--hb-color:var(--hb-indigo)} .green{--hb-color:#4caf72}
-      .goal { margin:14px 2px 0; }
-      .goal-row { display:flex; justify-content:space-between; margin-bottom:7px; color:var(--secondary-text-color); font-size:12px; }
-      .goal-track { height:8px; overflow:hidden; border-radius:99px; background:var(--secondary-background-color); }
+      .goal { margin:10px 2px 0; }
+      .goal-row { display:flex; justify-content:space-between; margin-bottom:5px; color:var(--secondary-text-color); font-size:11px; }
+      .goal-track { height:6px; overflow:hidden; border-radius:99px; background:var(--secondary-background-color); }
       .goal-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--hb-blue),var(--hb-cyan)); transition:width .3s ease; }
-      .workout { margin-top:14px; display:flex; align-items:flex-start; gap:10px; border-radius:14px; padding:12px 14px; background:var(--secondary-background-color); }
+      .workout { margin-top:10px; display:flex; align-items:flex-start; gap:9px; border-radius:12px; padding:10px 12px; background:var(--secondary-background-color); }
       .workout ha-icon { color:var(--hb-orange); margin-top:1px; }
       .workout strong { display:block; font-size:12px; margin-bottom:3px; }
       .workout span { color:var(--secondary-text-color); font-size:13px; }
-      .charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
-      .chart { min-width:0; border:1px solid var(--divider-color); border-radius:16px; padding:14px; }
+      .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:10px; margin-top:12px; }
+      .chart { min-width:0; border:1px solid var(--divider-color); border-radius:13px; padding:11px; }
       .chart.wide { grid-column:1/-1; }
-      .chart-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; font-size:14px; font-weight:700; }
+      .chart-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; font-size:13px; font-weight:700; }
       .legend { display:flex; gap:9px; flex-wrap:wrap; color:var(--secondary-text-color); font-size:10px; font-weight:500; }
       .legend i { display:inline-block; width:7px; height:7px; margin-right:4px; border-radius:50%; background:var(--dot); }
       svg { display:block; width:100%; height:auto; overflow:visible; }
@@ -212,8 +212,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .empty h2 { margin:12px 0 7px; font-size:18px; }
       .empty p,.history-error { color:var(--secondary-text-color); font-size:12px; }
       .history-error { margin-top:12px; text-align:center; }
-      @media (max-width:700px) { ha-card{padding:16px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.chart.wide{grid-column:auto}.user-chip{display:none} }
-      @media (max-width:380px) { .metric{padding:11px;min-height:84px}.metric-icon{width:32px;height:32px;flex-basis:32px}.metric-value{font-size:17px} }
+      @container (max-width:600px) { .charts{grid-template-columns:1fr}.chart.wide{grid-column:auto} }
+      @container (max-width:430px) { ha-card{padding:12px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.user-chip{display:none}.metric{min-height:66px;padding:9px}.chart{padding:10px} }
+      @container (max-width:300px) { .metrics{grid-template-columns:1fr}.header{display:block} }
     </style>`;
   }
 
@@ -255,10 +256,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
       <div class="header"><div><h1>${this._escape(this.config.title || this._t("title"))}</h1>
         ${sync && !["unknown","unavailable"].includes(sync) ? `<div class="eyebrow"><i class="sync-dot"></i>${this._t("synced")}: ${this._escape(this._relativeDate(sync))}</div>` : ""}
       </div>${user ? `<div class="user-chip">${this._t("user")}: ${this._escape(user)}</div>` : ""}</div>
-      <div class="metrics">${cards}</div>
+      <div class="metrics">${cards}${bodyCards}</div>
       ${this._entity("steps") ? `<div class="goal"><div class="goal-row"><span>${this._t("steps")}</span><span>${new Intl.NumberFormat(this._lang()).format(stepValue)} / ${new Intl.NumberFormat(this._lang()).format(goal)}</span></div><div class="goal-track"><div class="goal-fill" style="width:${goalPercent}%"></div></div></div>` : ""}
       ${workout && !["unknown","unavailable","none"].includes(workout) ? `<div class="workout"><ha-icon icon="mdi:run"></ha-icon><div><strong>${this._t("workout")}</strong><span>${this._escape(workout)}</span></div></div>` : ""}
-      ${bodyCards ? `<div class="metrics" style="margin-top:14px">${bodyCards}</div>` : ""}
       ${charts ? `<div class="charts">${charts}</div>` : ""}
       ${this._historyError ? `<div class="history-error">${this._t("historyUnavailable")}</div>` : ""}
     </ha-card>`;
@@ -324,7 +324,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
   _heartChart() {
     const points=this._historyPoints("heart_rate").filter((p)=>p.t>=Date.now()-86400000).sort((a,b)=>a.t-b.t);
     if (!points.length) return "";
-    const width=1132,height=190,left=34,right=12,top=12,bottom=26,plotW=width-left-right,plotH=height-top-bottom;
+    const width=720,height=190,left=34,right=12,top=12,bottom=26,plotW=width-left-right,plotH=height-top-bottom;
     const values=points.map((p)=>p.v),min=Math.max(30,Math.floor(Math.min(...values)/10)*10-10),max=Math.max(min+20,Math.ceil(Math.max(...values)/10)*10+10);
     const start=Date.now()-86400000,end=Date.now();
     const coords=points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ");
