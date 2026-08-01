@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.3.0
+/* Health Bridge Dashboard Card v0.3.1
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.3.0";
+const HB_VERSION = "0.3.1";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -371,7 +371,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
   _heartChart() {
     const points=this._historyPoints("heart_rate").filter((p)=>p.t>=Date.now()-86400000).sort((a,b)=>a.t-b.t);
     if (!points.length) return "";
-    const width=720,height=190,left=34,right=12,top=12,bottom=26,plotW=width-left-right,plotH=height-top-bottom;
+    // Match the activity chart's 8:3 aspect ratio so both expanded blocks
+    // occupy exactly the same responsive height at every card width.
+    const width=720,height=270,left=34,right=12,top=12,bottom=26,plotW=width-left-right,plotH=height-top-bottom;
     const values=points.map((p)=>p.v),min=Math.max(30,Math.floor(Math.min(...values)/10)*10-10),max=Math.max(min+20,Math.ceil(Math.max(...values)/10)*10+10);
     const start=Date.now()-86400000,end=Date.now();
     const coords=points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ");

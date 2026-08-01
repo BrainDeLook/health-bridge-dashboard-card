@@ -68,6 +68,7 @@ assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 720 270"/);
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
 assert.deepEqual(card.getGridOptions(), { columns: 12, min_columns: 4 });
 assert.equal(window.customCards[0].type, "health-bridge-dashboard-card");
