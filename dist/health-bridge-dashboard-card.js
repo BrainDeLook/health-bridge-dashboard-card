@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.4.0
+/* Health Bridge Dashboard Card v0.4.1
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.4.0";
+const HB_VERSION = "0.4.1";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -23,7 +23,7 @@ const HB_TRANSLATIONS = {
     restingHeartRate: "Resting HR", oxygen: "SpO₂", hrv: "HRV", respiratory: "Respiratory rate",
     weight: "Weight", bodyFat: "Body fat", leanMass: "Lean mass", vo2: "VO₂ max",
     recovery: "Cardio recovery", workout: "Latest workout", today: "Today",
-    expandChart: "Expand chart", collapseChart: "Collapse chart",
+    switchChart: "Switch chart",
     historyUnavailable: "History is unavailable. Current values will keep working.", user: "Profile",
   },
   ru: {
@@ -35,7 +35,7 @@ const HB_TRANSLATIONS = {
     restingHeartRate: "Пульс в покое", oxygen: "SpO₂", hrv: "HRV", respiratory: "Частота дыхания",
     weight: "Вес", bodyFat: "Жир", leanMass: "Безжировая масса", vo2: "VO₂ max",
     recovery: "Восстановление", workout: "Последняя тренировка", today: "Сегодня",
-    expandChart: "Развернуть график", collapseChart: "Свернуть график",
+    switchChart: "Переключить график",
     historyUnavailable: "История недоступна. Текущие значения продолжат работать.", user: "Профиль",
   },
 };
@@ -297,15 +297,18 @@ class HealthBridgeDashboardCard extends HTMLElement {
   }
 
   _toggleChart(chart) {
-    if (!["activity", "heart"].includes(chart) || this._expandedChart === chart) return;
-    this._expandedChart = chart;
+    if (!["activity", "heart"].includes(chart)) return;
+    const hasActivity = this.config.show_activity && (this._entity("steps") || this._entity("active_calories"));
+    const hasHeart = this.config.show_heart_rate && this._entity("heart_rate");
+    if (!hasActivity || !hasHeart) return;
+    this._expandedChart = this._expandedChart === "activity" ? "heart" : "activity";
     try { globalThis.localStorage?.setItem(this._chartStateKey, this._expandedChart); } catch (_) { /* Storage can be disabled. */ }
     this._render();
   }
 
   _collapsibleChart(kind, title, legend, svg, wide = false) {
     const expanded = this._expandedChart === kind;
-    const action = this._t(expanded ? "collapseChart" : "expandChart");
+    const action = this._t("switchChart");
     return `<section class="chart collapsible${wide ? " wide" : ""}">
       <button type="button" class="chart-title chart-toggle" data-chart-toggle="${kind}" aria-expanded="${expanded}" aria-label="${this._escape(`${action}: ${title}`)}">
         <span class="chart-heading"><span>${title}</span><ha-icon class="chart-chevron" icon="mdi:chevron-down"></ha-icon></span>${legend}
