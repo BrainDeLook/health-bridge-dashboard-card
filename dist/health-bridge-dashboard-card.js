@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.2.0
+/* Health Bridge Dashboard Card v0.3.0
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.2.0";
+const HB_VERSION = "0.3.0";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -23,6 +23,7 @@ const HB_TRANSLATIONS = {
     restingHeartRate: "Resting HR", oxygen: "SpO₂", hrv: "HRV", respiratory: "Respiratory rate",
     weight: "Weight", bodyFat: "Body fat", leanMass: "Lean mass", vo2: "VO₂ max",
     recovery: "Cardio recovery", workout: "Latest workout", today: "Today",
+    expandChart: "Expand chart", collapseChart: "Collapse chart",
     historyUnavailable: "History is unavailable. Current values will keep working.", user: "Profile",
   },
   ru: {
@@ -34,6 +35,7 @@ const HB_TRANSLATIONS = {
     restingHeartRate: "Пульс в покое", oxygen: "SpO₂", hrv: "HRV", respiratory: "Частота дыхания",
     weight: "Вес", bodyFat: "Жир", leanMass: "Безжировая масса", vo2: "VO₂ max",
     recovery: "Восстановление", workout: "Последняя тренировка", today: "Сегодня",
+    expandChart: "Развернуть график", collapseChart: "Свернуть график",
     historyUnavailable: "История недоступна. Текущие значения продолжат работать.", user: "Профиль",
   },
 };
@@ -47,6 +49,8 @@ class HealthBridgeDashboardCard extends HTMLElement {
     this._historyAt = 0;
     this._historyError = false;
     this._loadingHistory = false;
+    this._expandedChart = null;
+    this._chartStateKey = "";
   }
 
   setConfig(config) {
@@ -202,6 +206,13 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .chart { min-width:0; border:1px solid var(--divider-color); border-radius:13px; padding:11px; }
       .chart.wide { grid-column:1/-1; }
       .chart-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; font-size:13px; font-weight:700; }
+      .chart-toggle { appearance:none; width:100%; margin:0; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+      .chart-toggle:focus-visible { outline:2px solid var(--primary-color); outline-offset:5px; border-radius:5px; }
+      .chart-heading { display:flex; align-items:center; gap:7px; min-width:0; }
+      .chart-chevron { width:18px; height:18px; flex:0 0 18px; color:var(--secondary-text-color); transition:transform .2s ease; }
+      .chart-toggle[aria-expanded="true"] .chart-chevron { transform:rotate(180deg); }
+      .chart-body { margin-top:6px; }
+      .chart-body[hidden] { display:none; }
       .legend { display:flex; gap:9px; flex-wrap:wrap; color:var(--secondary-text-color); font-size:10px; font-weight:500; }
       .legend i { display:inline-block; width:7px; height:7px; margin-right:4px; border-radius:50%; background:var(--dot); }
       svg { display:block; width:100%; height:auto; overflow:visible; }
@@ -247,10 +258,13 @@ class HealthBridgeDashboardCard extends HTMLElement {
       this._metric("lean_body_mass", this._t("leanMass"), "mdi:dumbbell", "green"),
       this._metric("vo2_max", this._t("vo2"), "mdi:lungs", "cyan"),
     ].filter(Boolean).join("") : "";
+    const hasActivityChart = this.config.show_activity && (this._entity("steps") || this._entity("active_calories"));
+    const hasHeartChart = this.config.show_heart_rate && this._entity("heart_rate");
+    this._prepareChartState(user, Boolean(hasActivityChart), Boolean(hasHeartChart));
     const charts = [
-      this.config.show_activity && (this._entity("steps") || this._entity("active_calories")) ? this._activityChart() : "",
+      hasActivityChart ? this._activityChart() : "",
       this.config.show_sleep && (this._entity("sleep_deep_hours") || this._entity("sleep_core_hours") || this._entity("sleep_rem_hours")) ? this._sleepChart() : "",
-      this.config.show_heart_rate && this._entity("heart_rate") ? this._heartChart() : "",
+      hasHeartChart ? this._heartChart() : "",
     ].filter(Boolean).join("");
     this.shadowRoot.innerHTML = `${this._styles()}<ha-card>
       <div class="header"><div><h1>${this._escape(this.config.title || this._t("title"))}</h1>
@@ -265,6 +279,38 @@ class HealthBridgeDashboardCard extends HTMLElement {
     this.shadowRoot.querySelectorAll("[data-entity]").forEach((element) => {
       element.addEventListener("click", () => this._moreInfo(element.dataset.entity));
     });
+    this.shadowRoot.querySelectorAll("[data-chart-toggle]").forEach((element) => {
+      element.addEventListener("click", () => this._toggleChart(element.dataset.chartToggle));
+    });
+  }
+
+  _prepareChartState(user, hasActivity, hasHeart) {
+    const key = `health-bridge-dashboard-card:expanded:${user || "default"}`;
+    if (key !== this._chartStateKey) {
+      this._chartStateKey = key;
+      let saved = null;
+      try { saved = globalThis.localStorage?.getItem(key); } catch (_) { /* Storage can be disabled. */ }
+      this._expandedChart = ["activity", "heart", "none"].includes(saved) ? saved : "activity";
+    }
+    if (this._expandedChart === "activity" && !hasActivity && hasHeart) this._expandedChart = "heart";
+    if (this._expandedChart === "heart" && !hasHeart && hasActivity) this._expandedChart = "activity";
+  }
+
+  _toggleChart(chart) {
+    this._expandedChart = this._expandedChart === chart ? "none" : chart;
+    try { globalThis.localStorage?.setItem(this._chartStateKey, this._expandedChart); } catch (_) { /* Storage can be disabled. */ }
+    this._render();
+  }
+
+  _collapsibleChart(kind, title, legend, svg, wide = false) {
+    const expanded = this._expandedChart === kind;
+    const action = this._t(expanded ? "collapseChart" : "expandChart");
+    return `<section class="chart collapsible${wide ? " wide" : ""}">
+      <button type="button" class="chart-title chart-toggle" data-chart-toggle="${kind}" aria-expanded="${expanded}" aria-label="${this._escape(`${action}: ${title}`)}">
+        <span class="chart-heading"><span>${title}</span><ha-icon class="chart-chevron" icon="mdi:chevron-down"></ha-icon></span>${legend}
+      </button>
+      <div class="chart-body"${expanded ? "" : " hidden"}>${svg}</div>
+    </section>`;
   }
 
   _moreInfo(entityId) {
@@ -306,8 +352,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const bars = steps.map((item,i)=>{ const h=item.has ? item.value/maxSteps*plotH : 0; return `<rect x="${left+i*slot+slot*.18}" y="${top+plotH-h}" width="${slot*.48}" height="${h}" rx="4" fill="var(--hb-blue)" opacity=".85"><title>${item.value.toFixed(0)} ${this._t("steps")}</title></rect>`; }).join("");
     const linePoints = calories.map((item,i)=>`${left+i*slot+slot*.5},${top+plotH-(item.has?item.value/maxCal*plotH:0)}`).join(" ");
     const dots = calories.map((item,i)=>item.has?`<circle cx="${left+i*slot+slot*.5}" cy="${top+plotH-item.value/maxCal*plotH}" r="3" fill="var(--hb-orange)"><title>${item.value.toFixed(0)} kcal</title></circle>`:"").join("");
-    return `<section class="chart"><div class="chart-title"><span>${this._t("activity")}</span><span class="legend"><span><i style="--dot:var(--hb-blue)"></i>${this._t("steps")}</span><span><i style="--dot:var(--hb-orange)"></i>kcal</span></span></div><svg viewBox="0 0 ${width} ${height}" role="img">
-      ${this._grid(width,height,left,right,top,bottom,maxSteps)}${bars}<polyline points="${linePoints}" fill="none" stroke="var(--hb-orange)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}${this._dayLabels(steps,width,height,left,right)}</svg></section>`;
+    const legend = `<span class="legend"><span><i style="--dot:var(--hb-blue)"></i>${this._t("steps")}</span><span><i style="--dot:var(--hb-orange)"></i>kcal</span></span>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,maxSteps)}${bars}<polyline points="${linePoints}" fill="none" stroke="var(--hb-orange)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}${this._dayLabels(steps,width,height,left,right)}</svg>`;
+    return this._collapsibleChart("activity", this._t("activity"), legend, svg);
   }
 
   _sleepChart() {
@@ -329,7 +376,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const start=Date.now()-86400000,end=Date.now();
     const coords=points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ");
     const area=`${left},${top+plotH} ${coords} ${left+plotW},${top+plotH}`;
-    return `<section class="chart wide"><div class="chart-title"><span>${this._t("heart")}</span><span class="legend"><span><i style="--dot:var(--hb-red)"></i>bpm</span></span></div><svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,max,min)}<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/><polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg></section>`;
+    const legend = `<span class="legend"><span><i style="--dot:var(--hb-red)"></i>bpm</span></span>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,max,min)}<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/><polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
+    return this._collapsibleChart("heart", this._t("heart"), legend, svg, true);
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {
