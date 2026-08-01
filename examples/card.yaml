@@ -1,0 +1,18 @@
+type: custom:health-bridge-dashboard-card
+title: Здоровье
+language: ru
+days: 7
+step_goal: 10000
+show_activity: true
+show_sleep: true
+show_heart_rate: true
+show_body: true
+
+# user_id is optional when there is only one Health Bridge profile.
+# It is the suffix in sensor.steps_<user_id>.
+# user_id: daniil
+
+# Override only renamed/non-standard entities if needed:
+# entities:
+#   steps: sensor.my_steps
+#   heart_rate: sensor.my_heart_rate
