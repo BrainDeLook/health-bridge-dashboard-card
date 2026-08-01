@@ -72,11 +72,15 @@ assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded
 assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 720 270"/);
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
 card._toggleChart("heart");
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
-assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
-card._toggleChart("activity");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="false"/);
+assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "activity");
+card._toggleChart("activity");
+assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
+assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+card.setConfig({ language: "en", show_activity: false });
+card._toggleChart("heart");
+assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
 assert.deepEqual(card.getGridOptions(), { columns: 12, min_columns: 4 });
 assert.equal(window.customCards[0].type, "health-bridge-dashboard-card");
 

@@ -102,9 +102,10 @@ For `sensor.steps_daniil`, the `user_id` is `daniil`.
 | `entities` | mapping | `{}` | Explicit metric-to-entity overrides |
 
 The activity chart is expanded the first time the card is loaded and the
-heart-rate chart is collapsed. Tap a chart header to switch sections. Exactly
-one of these two charts always remains open, and the last selection is
-remembered for each detected Health Bridge profile.
+heart-rate chart is collapsed. Either chart header acts as the same toggle:
+pressing either arrow switches from activity to heart rate or back again.
+Exactly one chart always remains open, and the last selection is remembered for
+each detected Health Bridge profile.
 
 Example with renamed entities:
 
