@@ -19,6 +19,7 @@ Mushroom, card-mod, or any other frontend dependency.
 - Automatic profile and entity discovery
 - Compact layout that adapts to the card's own width in Masonry and Sections views
 - Current activity, sleep, cardiovascular, and body-composition metrics
+- Collapsible activity and heart-rate charts with an activity-first default
 - Seven-day activity chart
 - Stacked sleep-stage chart
 - 24-hour heart-rate chart
@@ -97,6 +98,10 @@ For `sensor.steps_daniil`, the `user_id` is `daniil`.
 | `show_heart_rate` | boolean | `true` | 24-hour heart-rate chart |
 | `show_body` | boolean | `true` | Body-composition metrics |
 | `entities` | mapping | `{}` | Explicit metric-to-entity overrides |
+
+The activity chart is expanded the first time the card is loaded and the
+heart-rate chart is collapsed. Tap either chart header to switch between them;
+the last selection is remembered for each detected Health Bridge profile.
 
 Example with renamed entities:
 
