@@ -1,33 +1,116 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
   <title id="title">Health Bridge Dashboard Card preview</title>
-  <desc id="desc">A dark Home Assistant health dashboard with metric tiles and activity charts.</desc>
+  <desc id="desc">Current compact Health Bridge card with six metric tiles, a step goal, an open activity chart and a collapsed heart-rate section.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#1f2937"/></linearGradient>
-    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#4c8dff"/><stop offset="1" stop-color="#35b9c7"/></linearGradient>
-    <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="18" flood-opacity=".28"/></filter>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#0d0f12"/><stop offset="1" stop-color="#171a1f"/>
+    </linearGradient>
+    <linearGradient id="progress" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#4c8dff"/><stop offset="1" stop-color="#35b9c7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity=".42"/>
+    </filter>
   </defs>
-  <rect width="1200" height="720" fill="#0b1020"/>
-  <rect x="70" y="48" width="1060" height="624" rx="28" fill="url(#bg)" stroke="#334155" filter="url(#shadow)"/>
-  <text x="108" y="100" fill="#f8fafc" font-family="Arial,sans-serif" font-size="30" font-weight="700">Health overview</text>
-  <circle cx="113" cy="128" r="5" fill="#4caf72"/><text x="126" y="133" fill="#94a3b8" font-family="Arial,sans-serif" font-size="14">Synced 4 minutes ago</text>
-  <rect x="930" y="82" width="154" height="34" rx="17" fill="#273449"/><text x="1007" y="104" text-anchor="middle" fill="#aebbd0" font-family="Arial,sans-serif" font-size="13">Profile: daniil</text>
-  <g font-family="Arial,sans-serif">
-    <g transform="translate(108 164)"><rect width="230" height="98" rx="18" fill="#19263b" stroke="#34445f"/><circle cx="42" cy="40" r="22" fill="#203e70"/><text x="76" y="42" fill="#fff" font-size="25" font-weight="700">8,426</text><text x="76" y="66" fill="#94a3b8" font-size="13">Steps</text></g>
-    <g transform="translate(358 164)"><rect width="230" height="98" rx="18" fill="#2b2422" stroke="#4b3b35"/><circle cx="42" cy="40" r="22" fill="#533326"/><text x="76" y="42" fill="#fff" font-size="25" font-weight="700">513 kcal</text><text x="76" y="66" fill="#94a3b8" font-size="13">Active calories</text></g>
-    <g transform="translate(608 164)"><rect width="230" height="98" rx="18" fill="#23273a" stroke="#3f4561"/><circle cx="42" cy="40" r="22" fill="#36346c"/><text x="76" y="42" fill="#fff" font-size="25" font-weight="700">7.48 h</text><text x="76" y="66" fill="#94a3b8" font-size="13">Sleep</text></g>
-    <g transform="translate(858 164)"><rect width="226" height="98" rx="18" fill="#2b2229" stroke="#4c3945"/><circle cx="42" cy="40" r="22" fill="#582d3a"/><text x="76" y="42" fill="#fff" font-size="25" font-weight="700">58 bpm</text><text x="76" y="66" fill="#94a3b8" font-size="13">Resting HR</text></g>
+
+  <rect width="1200" height="760" fill="url(#page)"/>
+  <circle cx="1050" cy="88" r="180" fill="#4c8dff" opacity=".035"/>
+  <circle cx="130" cy="680" r="230" fill="#35b9c7" opacity=".025"/>
+
+  <g filter="url(#shadow)">
+    <rect x="260" y="36" width="680" height="688" rx="24" fill="#1c1c1c" stroke="#393b40"/>
   </g>
-  <text x="108" y="294" fill="#94a3b8" font-family="Arial,sans-serif" font-size="13">Steps</text><text x="1084" y="294" text-anchor="end" fill="#cbd5e1" font-family="Arial,sans-serif" font-size="13">8,426 / 10,000</text>
-  <rect x="108" y="306" width="976" height="9" rx="5" fill="#2b374a"/><rect x="108" y="306" width="822" height="9" rx="5" fill="url(#bar)"/>
-  <g transform="translate(108 345)">
-    <rect width="478" height="280" rx="18" fill="#151f30" stroke="#34445f"/><text x="22" y="34" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16" font-weight="700">Activity · 7 days</text>
-    <g stroke="#334155"><path d="M46 72H452M46 125H452M46 178H452M46 231H452"/></g>
-    <g fill="#4c8dff"><rect x="68" y="154" width="32" height="77" rx="5"/><rect x="122" y="111" width="32" height="120" rx="5"/><rect x="176" y="90" width="32" height="141" rx="5"/><rect x="230" y="132" width="32" height="99" rx="5"/><rect x="284" y="74" width="32" height="157" rx="5"/><rect x="338" y="104" width="32" height="127" rx="5"/><rect x="392" y="83" width="32" height="148" rx="5"/></g>
-    <polyline points="84,191 138,160 192,126 246,168 300,112 354,144 408,101" fill="none" stroke="#ff8a4c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-  <g transform="translate(606 345)">
-    <rect width="478" height="280" rx="18" fill="#151f30" stroke="#34445f"/><text x="22" y="34" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16" font-weight="700">Sleep stages · 7 days</text>
-    <g stroke="#334155"><path d="M46 72H452M46 125H452M46 178H452M46 231H452"/></g>
-    <g><g fill="#3949ab"><rect x="68" y="194" width="32" height="37"/><rect x="122" y="190" width="32" height="41"/><rect x="176" y="198" width="32" height="33"/><rect x="230" y="187" width="32" height="44"/><rect x="284" y="191" width="32" height="40"/><rect x="338" y="200" width="32" height="31"/><rect x="392" y="188" width="32" height="43"/></g><g fill="#7986cb"><rect x="68" y="119" width="32" height="75"/><rect x="122" y="110" width="32" height="80"/><rect x="176" y="124" width="32" height="74"/><rect x="230" y="104" width="32" height="83"/><rect x="284" y="111" width="32" height="80"/><rect x="338" y="132" width="32" height="68"/><rect x="392" y="107" width="32" height="81"/></g><g fill="#26c6da"><rect x="68" y="88" width="32" height="31" rx="4"/><rect x="122" y="75" width="32" height="35" rx="4"/><rect x="176" y="96" width="32" height="28" rx="4"/><rect x="230" y="68" width="32" height="36" rx="4"/><rect x="284" y="79" width="32" height="32" rx="4"/><rect x="338" y="105" width="32" height="27" rx="4"/><rect x="392" y="72" width="32" height="35" rx="4"/></g></g>
+
+  <g font-family="Inter,Segoe UI,Arial,sans-serif">
+    <text x="288" y="78" fill="#f4f5f7" font-size="27" font-weight="750">Health Bridge</text>
+    <circle cx="294" cy="104" r="5" fill="#4caf72"/>
+    <circle cx="294" cy="104" r="10" fill="#4caf72" opacity=".14"/>
+    <text x="310" y="109" fill="#a7abb4" font-size="13">Synced 4 minutes ago</text>
+    <rect x="788" y="58" width="124" height="32" rx="16" fill="#27292d"/>
+    <text x="850" y="78" text-anchor="middle" fill="#a7abb4" font-size="12">Profile: daniil</text>
+
+    <!-- Metric tiles: current compact 3 × 2 layout -->
+    <g transform="translate(288 132)">
+      <g>
+        <rect width="190" height="84" rx="15" fill="#202630" stroke="#384454"/>
+        <rect x="14" y="18" width="40" height="40" rx="12" fill="#233c66"/>
+        <path d="M35 25c3 0 5 2 5 5s-2 5-5 5-5-2-5-5 2-5 5-5zm-2 12 7 2 5 7-4 3-4-5-1 16h-5l1-12-5 8-4-2 8-16z" fill="#5794ff"/>
+        <text x="68" y="37" fill="#f5f6f8" font-size="22" font-weight="700">8,426<tspan dx="5" fill="#a7abb4" font-size="10">steps</tspan></text>
+        <text x="68" y="60" fill="#a7abb4" font-size="12">Steps</text>
+      </g>
+      <g transform="translate(204)">
+        <rect width="190" height="84" rx="15" fill="#29231f" stroke="#4c3b32"/>
+        <rect x="14" y="18" width="40" height="40" rx="12" fill="#4b3026"/>
+        <path d="M36 26c6 8 8 12 8 18a10 10 0 0 1-20 0c0-4 2-8 6-12 0 6 3 7 4 8 2-5 2-9 2-14z" fill="#ff874c"/>
+        <text x="68" y="37" fill="#f5f6f8" font-size="22" font-weight="700">513<tspan dx="5" fill="#a7abb4" font-size="10">kcal</tspan></text>
+        <text x="68" y="60" fill="#a7abb4" font-size="12">Active calories</text>
+      </g>
+      <g transform="translate(408)">
+        <rect width="190" height="84" rx="15" fill="#202921" stroke="#34493a"/>
+        <rect x="14" y="18" width="40" height="40" rx="12" fill="#21402d"/>
+        <path d="M27 43h7l3-12 4 18 3-9h7" fill="none" stroke="#46c27a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="68" y="37" fill="#f5f6f8" font-size="22" font-weight="700">34<tspan dx="5" fill="#a7abb4" font-size="10">min</tspan></text>
+        <text x="68" y="60" fill="#a7abb4" font-size="12">Exercise</text>
+      </g>
+
+      <g transform="translate(0 96)">
+        <rect width="190" height="84" rx="15" fill="#1e292a" stroke="#33494c"/>
+        <rect x="14" y="18" width="40" height="40" rx="12" fill="#1f4248"/>
+        <path d="M27 30a5 5 0 1 1 10 0c0 5-5 9-5 9s-5-4-5-9zm14 13a5 5 0 1 1 10 0c0 5-5 9-5 9s-5-4-5-9z" fill="none" stroke="#40bfcc" stroke-width="2.5"/>
+        <text x="68" y="37" fill="#f5f6f8" font-size="22" font-weight="700">6.4<tspan dx="5" fill="#a7abb4" font-size="10">km</tspan></text>
+        <text x="68" y="60" fill="#a7abb4" font-size="12">Distance</text>
+      </g>
+      <g transform="translate(204 96)">
+        <rect width="190" height="84" rx="15" fill="#2a2022" stroke="#4c3438"/>
+        <rect x="14" y="18" width="40" height="40" rx="12" fill="#552e35"/>
+        <path d="M34 51C20 42 24 29 32 29c4 0 6 3 7 5 1-2 3-5 7-5 8 0 12 13-7 22z" fill="#f05b67"/>
+        <text x="68" y="37" fill="#f5f6f8" font-size="22" font-weight="700">58<tspan dx="5" fill="#a7abb4" font-size="10">bpm</tspan></text>
+        <text x="68" y="60" fill="#a7abb4" font-size="12">Resting HR</text>
+      </g>
+      <g transform="translate(408 96)">
+        <rect width="190" height="84" rx="15" fill="#202630" stroke="#384454"/>
+        <rect x="14" y="18" width="40" height="40" rx="12" fill="#263956"/>
+        <path d="M28 35h20v18H28zm4 0v-5a6 6 0 0 1 12 0v5" fill="none" stroke="#5794ff" stroke-width="2.5"/>
+        <text x="68" y="37" fill="#f5f6f8" font-size="22" font-weight="700">78.4<tspan dx="5" fill="#a7abb4" font-size="10">kg</tspan></text>
+        <text x="68" y="60" fill="#a7abb4" font-size="12">Weight</text>
+      </g>
+    </g>
+
+    <text x="290" y="340" fill="#a7abb4" font-size="12">Steps</text>
+    <text x="912" y="340" text-anchor="end" fill="#cdd0d6" font-size="12">8,426 / 10,000</text>
+    <rect x="288" y="350" width="624" height="7" rx="4" fill="#292b2f"/>
+    <rect x="288" y="350" width="526" height="7" rx="4" fill="url(#progress)"/>
+
+    <!-- Expanded activity accordion section -->
+    <rect x="288" y="380" width="624" height="266" rx="15" fill="#1b1b1b" stroke="#393b40"/>
+    <text x="306" y="410" fill="#f4f5f7" font-size="15" font-weight="700">Activity · 7 days</text>
+    <path d="M465 408l6-6 6 6" fill="none" stroke="#a7abb4" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="776" cy="405" r="4" fill="#4c8dff"/><text x="786" y="409" fill="#a7abb4" font-size="11">Steps</text>
+    <circle cx="850" cy="405" r="4" fill="#ff8a4c"/><text x="860" y="409" fill="#a7abb4" font-size="11">kcal</text>
+
+    <g stroke="#35373b" stroke-width="1">
+      <path d="M326 442H890M326 492H890M326 542H890M326 592H890"/>
+    </g>
+    <g fill="#8c929d" font-size="9">
+      <text x="316" y="445" text-anchor="end">10k</text><text x="316" y="495" text-anchor="end">6.7k</text>
+      <text x="316" y="545" text-anchor="end">3.3k</text><text x="316" y="595" text-anchor="end">0</text>
+    </g>
+    <g fill="#4c8dff" opacity=".9">
+      <rect x="354" y="539" width="42" height="53" rx="5"/><rect x="430" y="515" width="42" height="77" rx="5"/>
+      <rect x="506" y="528" width="42" height="64" rx="5"/><rect x="582" y="487" width="42" height="105" rx="5"/>
+      <rect x="658" y="505" width="42" height="87" rx="5"/><rect x="734" y="472" width="42" height="120" rx="5"/>
+      <rect x="810" y="450" width="42" height="142" rx="5"/>
+    </g>
+    <polyline points="375,574 451,560 527,568 603,535 679,550 755,520 831,505" fill="none" stroke="#ff8a4c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#9ca1aa" font-size="10" text-anchor="middle">
+      <text x="375" y="615">Mon</text><text x="451" y="615">Tue</text><text x="527" y="615">Wed</text>
+      <text x="603" y="615">Thu</text><text x="679" y="615">Fri</text><text x="755" y="615">Sat</text><text x="831" y="615">Sun</text>
+    </g>
+
+    <!-- Collapsed heart-rate accordion section -->
+    <rect x="288" y="658" width="624" height="46" rx="15" fill="#1b1b1b" stroke="#393b40"/>
+    <text x="306" y="687" fill="#f4f5f7" font-size="15" font-weight="700">Heart rate · 24 hours</text>
+    <path d="M492 680l6 6 6-6" fill="none" stroke="#a7abb4" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="853" cy="681" r="4" fill="#f05b67"/><text x="863" y="685" fill="#a7abb4" font-size="11">bpm</text>
   </g>
 </svg>

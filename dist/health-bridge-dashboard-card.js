@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.3.1
+/* Health Bridge Dashboard Card v0.4.0
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.3.1";
+const HB_VERSION = "0.4.0";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -290,14 +290,15 @@ class HealthBridgeDashboardCard extends HTMLElement {
       this._chartStateKey = key;
       let saved = null;
       try { saved = globalThis.localStorage?.getItem(key); } catch (_) { /* Storage can be disabled. */ }
-      this._expandedChart = ["activity", "heart", "none"].includes(saved) ? saved : "activity";
+      this._expandedChart = ["activity", "heart"].includes(saved) ? saved : "activity";
     }
     if (this._expandedChart === "activity" && !hasActivity && hasHeart) this._expandedChart = "heart";
     if (this._expandedChart === "heart" && !hasHeart && hasActivity) this._expandedChart = "activity";
   }
 
   _toggleChart(chart) {
-    this._expandedChart = this._expandedChart === chart ? "none" : chart;
+    if (!["activity", "heart"].includes(chart) || this._expandedChart === chart) return;
+    this._expandedChart = chart;
     try { globalThis.localStorage?.setItem(this._chartStateKey, this._expandedChart); } catch (_) { /* Storage can be disabled. */ }
     this._render();
   }
