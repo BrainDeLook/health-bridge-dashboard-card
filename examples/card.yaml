@@ -3,6 +3,7 @@ title: Здоровье
 language: ru
 days: 7
 step_goal: 10000
+calorie_goal: 600
 show_activity: true
 show_sleep: true
 show_heart_rate: true

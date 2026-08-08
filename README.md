@@ -22,6 +22,9 @@ Mushroom, card-mod, or any other frontend dependency.
 - Compact layout that adapts to the card's own width in Masonry and Sections views
 - Current activity, sleep, cardiovascular, and body-composition metrics
 - Activity and heart-rate accordion with equal responsive chart heights
+- Stable dual-axis activity scaling for steps and active calories
+- Visible current heart rate even when Recorder has only one point
+- Native Home Assistant graphical card editor with entity pickers
 - Seven-day activity chart
 - Stacked sleep-stage chart
 - 24-hour heart-rate chart
@@ -69,6 +72,7 @@ title: Здоровье
 language: ru
 days: 7
 step_goal: 10000
+calorie_goal: 600
 show_activity: true
 show_sleep: true
 show_heart_rate: true
@@ -95,11 +99,27 @@ For `sensor.steps_daniil`, the `user_id` is `daniil`.
 | `user_id` | string | auto | Health Bridge entity suffix |
 | `days` | number | `7` | Activity and sleep history, from 2 to 31 days |
 | `step_goal` | number | `10000` | Daily step target |
+| `calorie_goal` | number | `600` | Daily active-calorie target and chart scale |
 | `show_activity` | boolean | `true` | Activity chart |
 | `show_sleep` | boolean | `true` | Sleep-stage chart |
 | `show_heart_rate` | boolean | `true` | 24-hour heart-rate chart |
 | `show_body` | boolean | `true` | Body-composition metrics |
 | `entities` | mapping | `{}` | Explicit metric-to-entity overrides |
+
+## Graphical editor
+
+Open the dashboard editor and choose **Edit card** to configure the card without
+writing YAML. The native Home Assistant form lets you change the language,
+history period, daily goals and visible sections. Expand **Metric entities** to
+select any sensor in Home Assistant for each displayed value. This makes it
+possible to combine health entities from different people, integrations or Home
+Assistant servers mirrored into the current instance.
+
+The activity chart uses two stable axes because steps and kilocalories are
+different units: steps are scaled against `step_goal` on the left, while active
+calories are scaled against `calorie_goal` on the right. The heart-rate chart
+shows a dashed current-value line and marker when Recorder has not yet collected
+enough points for a time series.
 
 The activity chart is expanded the first time the card is loaded and the
 heart-rate chart is collapsed. Either chart header acts as the same toggle:

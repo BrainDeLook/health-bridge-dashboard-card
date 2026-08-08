@@ -30,6 +30,12 @@ await import("../dist/health-bridge-dashboard-card.js");
 
 const Card = customElements.get("health-bridge-dashboard-card");
 assert.ok(Card, "the custom element should be registered");
+const configForm = Card.getConfigForm();
+const entityPanel = configForm.schema.find((field) => field.name === "entities");
+assert.ok(entityPanel, "the graphical editor should include an entity mapping panel");
+assert.ok(entityPanel.schema.some((field) => field.name === "heart_rate"));
+assert.ok(entityPanel.schema.some((field) => field.name === "steps"));
+assert.equal(Card.getStubConfig().calorie_goal, 600);
 
 const card = new Card();
 card.setConfig({ language: "en", step_goal: 10000 });
@@ -66,10 +72,13 @@ assert.match(card.shadowRoot.innerHTML, /container-type:inline-size/);
 assert.match(card.shadowRoot.innerHTML, /@container \(max-width:430px\)/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="false"/);
+assert.match(card.shadowRoot.innerHTML, /data-axis="calories"/);
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
 assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 720 270"/);
+assert.match(card.shadowRoot.innerHTML, /data-current-only="true"/);
+assert.match(card.shadowRoot.innerHTML, />72 bpm<\/text>/);
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);

@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.4.2
+/* Health Bridge Dashboard Card v0.5.0
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.4.2";
+const HB_VERSION = "0.5.0";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -40,6 +40,41 @@ const HB_TRANSLATIONS = {
   },
 };
 
+const HB_EDITOR_LABELS = {
+  en: {
+    title: "Title", language: "Language", user_id: "Health Bridge profile suffix",
+    days: "History period", step_goal: "Daily step goal", calorie_goal: "Daily active calorie goal",
+    show_activity: "Show activity chart", show_sleep: "Show sleep chart",
+    show_heart_rate: "Show heart-rate chart", show_body: "Show body metrics",
+    last_sync_time: "Last synchronization", last_apple_workout: "Latest workout",
+    steps: "Steps", active_calories: "Active calories", exercise_time: "Exercise time",
+    distance: "Distance", sleep_duration: "Sleep duration", sleep_deep_hours: "Deep sleep",
+    sleep_core_hours: "Core sleep", sleep_rem_hours: "REM sleep",
+    resting_heart_rate: "Resting heart rate", heart_rate: "Heart rate",
+    heart_rate_variability: "Heart-rate variability", oxygen_saturation: "Oxygen saturation",
+    respiratory_rate: "Respiratory rate", body_mass: "Body mass",
+    body_fat_percentage: "Body-fat percentage", lean_body_mass: "Lean body mass",
+    vo2_max: "VO₂ max", cardio_recovery: "Cardio recovery",
+    mindful_minutes: "Mindful minutes", time_in_daylight: "Time in daylight",
+  },
+  ru: {
+    title: "Заголовок", language: "Язык", user_id: "Суффикс профиля Health Bridge",
+    days: "Период истории", step_goal: "Дневная цель шагов", calorie_goal: "Дневная цель активных калорий",
+    show_activity: "Показывать график активности", show_sleep: "Показывать график сна",
+    show_heart_rate: "Показывать график пульса", show_body: "Показывать состав тела",
+    last_sync_time: "Последняя синхронизация", last_apple_workout: "Последняя тренировка",
+    steps: "Шаги", active_calories: "Активные калории", exercise_time: "Время тренировки",
+    distance: "Дистанция", sleep_duration: "Продолжительность сна", sleep_deep_hours: "Глубокий сон",
+    sleep_core_hours: "Основной сон", sleep_rem_hours: "REM-сон",
+    resting_heart_rate: "Пульс в покое", heart_rate: "Пульс",
+    heart_rate_variability: "Вариабельность пульса", oxygen_saturation: "Насыщение кислородом",
+    respiratory_rate: "Частота дыхания", body_mass: "Масса тела",
+    body_fat_percentage: "Процент жира", lean_body_mass: "Безжировая масса",
+    vo2_max: "VO₂ max", cardio_recovery: "Кардиовосстановление",
+    mindful_minutes: "Осознанные минуты", time_in_daylight: "Время при дневном свете",
+  },
+};
+
 class HealthBridgeDashboardCard extends HTMLElement {
   constructor() {
     super();
@@ -66,6 +101,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
       show_heart_rate: true,
       show_body: true,
       step_goal: 10000,
+      calorie_goal: 600,
       entities: {},
       ...config,
     };
@@ -88,7 +124,67 @@ class HealthBridgeDashboardCard extends HTMLElement {
   }
 
   static getStubConfig() {
-    return { title: "Health Bridge", days: 7, step_goal: 10000 };
+    return {
+      title: "Health Bridge", language: "auto", days: 7,
+      step_goal: 10000, calorie_goal: 600,
+      show_activity: true, show_sleep: true, show_heart_rate: true, show_body: true,
+      entities: {},
+    };
+  }
+
+  static getConfigForm() {
+    const lang = (globalThis.navigator?.language || "en").toLowerCase().startsWith("ru") ? "ru" : "en";
+    const labels = HB_EDITOR_LABELS[lang];
+    const entityFields = HB_METRICS.map((name) => ({
+      name,
+      selector: { entity: { filter: { domain: "sensor" } } },
+    }));
+    return {
+      schema: [
+        { name: "title", selector: { text: {} } },
+        {
+          name: "language", default: "auto",
+          selector: { select: { mode: "dropdown", options: [
+            { value: "auto", label: lang === "ru" ? "Автоматически" : "Automatic" },
+            { value: "en", label: "English" },
+            { value: "ru", label: "Русский" },
+          ] } },
+        },
+        { name: "user_id", selector: { text: {} } },
+        {
+          type: "grid", name: "", flatten: true, column_min_width: "160px",
+          schema: [
+            { name: "days", default: 7, selector: { number: { min: 2, max: 31, step: 1, mode: "box", unit_of_measurement: lang === "ru" ? "дн." : "days" } } },
+            { name: "step_goal", default: 10000, selector: { number: { min: 1, max: 100000, step: 500, mode: "box", unit_of_measurement: lang === "ru" ? "шагов" : "steps" } } },
+            { name: "calorie_goal", default: 600, selector: { number: { min: 1, max: 10000, step: 50, mode: "box", unit_of_measurement: "kcal" } } },
+          ],
+        },
+        {
+          type: "expandable", name: "", flatten: true, expanded: true,
+          title: lang === "ru" ? "Отображаемые разделы" : "Visible sections", icon: "mdi:view-dashboard-outline",
+          schema: [
+            { name: "show_activity", default: true, selector: { boolean: {} } },
+            { name: "show_sleep", default: true, selector: { boolean: {} } },
+            { name: "show_heart_rate", default: true, selector: { boolean: {} } },
+            { name: "show_body", default: true, selector: { boolean: {} } },
+          ],
+        },
+        {
+          type: "expandable", name: "entities", flatten: false,
+          title: lang === "ru" ? "Сущности показателей" : "Metric entities", icon: "mdi:database-edit-outline",
+          schema: entityFields,
+        },
+      ],
+      computeLabel: (schema) => labels[schema.name] || schema.name,
+      computeHelper: (schema) => schema.name === "user_id"
+        ? (lang === "ru" ? "Оставьте пустым для автоматического определения" : "Leave empty for automatic discovery")
+        : undefined,
+      assertConfig: (config) => {
+        if (config.entities !== undefined && (!config.entities || typeof config.entities !== "object" || Array.isArray(config.entities))) {
+          throw new Error("entities must be a mapping of metric names to entity IDs");
+        }
+      },
+    };
   }
 
   getCardSize() { return 12; }
@@ -98,7 +194,8 @@ class HealthBridgeDashboardCard extends HTMLElement {
   }
 
   _lang() {
-    const value = (this.config?.language || this._hass?.language || "en").toLowerCase();
+    const configured = this.config?.language;
+    const value = ((configured && configured !== "auto" ? configured : this._hass?.language) || "en").toLowerCase();
     return value.startsWith("ru") ? "ru" : "en";
   }
 
@@ -371,15 +468,17 @@ class HealthBridgeDashboardCard extends HTMLElement {
 
   _activityChart() {
     const steps = this._daily("steps"), calories = this._daily("active_calories");
-    const width = 560, height = 210, left = 32, right = 12, top = 12, bottom = 28;
+    const width = 560, height = 210, left = 32, right = 34, top = 12, bottom = 28;
     const plotW = width-left-right, plotH = height-top-bottom, slot = plotW/steps.length;
-    const maxSteps = Math.max(1000, ...steps.map((x)=>x.value));
-    const maxCal = Math.max(100, ...calories.map((x)=>x.value));
+    const stepGoal = Math.max(1, Number(this.config.step_goal) || 10000);
+    const calorieGoal = Math.max(1, Number(this.config.calorie_goal) || 600);
+    const maxSteps = Math.max(stepGoal, Math.ceil(Math.max(0,...steps.map((x)=>x.value))/1000)*1000);
+    const maxCal = Math.max(calorieGoal, Math.ceil(Math.max(0,...calories.map((x)=>x.value))/100)*100);
     const bars = steps.map((item,i)=>{ const h=item.has ? item.value/maxSteps*plotH : 0; return `<rect x="${left+i*slot+slot*.18}" y="${top+plotH-h}" width="${slot*.48}" height="${h}" rx="4" fill="var(--hb-blue)" opacity=".85"><title>${item.value.toFixed(0)} ${this._t("steps")}</title></rect>`; }).join("");
     const linePoints = calories.map((item,i)=>`${left+i*slot+slot*.5},${top+plotH-(item.has?item.value/maxCal*plotH:0)}`).join(" ");
     const dots = calories.map((item,i)=>item.has?`<circle cx="${left+i*slot+slot*.5}" cy="${top+plotH-item.value/maxCal*plotH}" r="3" fill="var(--hb-orange)"><title>${item.value.toFixed(0)} kcal</title></circle>`:"").join("");
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-blue)"></i>${this._t("steps")}</span><span><i style="--dot:var(--hb-orange)"></i>kcal</span></span>`;
-    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,maxSteps)}${bars}<polyline points="${linePoints}" fill="none" stroke="var(--hb-orange)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}${this._dayLabels(steps,width,height,left,right)}</svg>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._dualGrid(width,height,left,right,top,bottom,maxSteps,maxCal)}${bars}<polyline points="${linePoints}" fill="none" stroke="var(--hb-orange)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}${this._dayLabels(steps,width,height,left,right)}</svg>`;
     return this._collapsibleChart("activity", this._t("activity"), legend, svg);
   }
 
@@ -402,16 +501,31 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const width=720,height=270,left=34,right=12,top=12,bottom=26,plotW=width-left-right,plotH=height-top-bottom;
     const values=points.map((p)=>p.v),min=Math.max(30,Math.floor(Math.min(...values)/10)*10-10),max=Math.max(min+20,Math.ceil(Math.max(...values)/10)*10+10);
     const start=Date.now()-86400000,end=Date.now();
-    const coords=points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ");
-    const area=`${left},${top+plotH} ${coords} ${left+plotW},${top+plotH}`;
+    const current=points[points.length-1],currentY=top+plotH-(current.v-min)/(max-min)*plotH;
+    const hasHistory=points.length>1;
+    const coords=hasHistory
+      ? points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ")
+      : `${left},${currentY} ${left+plotW},${currentY}`;
+    const area=hasHistory?`${left},${top+plotH} ${coords} ${left+plotW},${top+plotH}`:"";
+    const currentMarker=`<circle cx="${left+plotW}" cy="${currentY}" r="5" fill="var(--hb-red)"><title>${current.v.toFixed(0)} bpm</title></circle><text class="axis" x="${left+plotW-8}" y="${Math.max(top+10,currentY-9)}" text-anchor="end" style="fill:var(--hb-red)">${current.v.toFixed(0)} bpm</text>`;
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-red)"></i>bpm</span></span>`;
-    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,max,min)}<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/><polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img" data-current-only="${!hasHistory}">${this._grid(width,height,left,right,top,bottom,max,min)}${hasHistory?`<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/>`:""}<polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"${hasHistory?"":` stroke-dasharray="8 7" opacity=".75"`}/>${currentMarker}<text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
     return this._collapsibleChart("heart", this._t("heart"), legend, svg, true);
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {
     const plotH=height-top-bottom, parts=[];
     for(let i=0;i<=3;i++){const y=top+plotH*i/3,value=max-(max-min)*i/3;parts.push(`<line class="grid-line" x1="${left}" x2="${width-right}" y1="${y}" y2="${y}"/><text class="axis" x="${left-5}" y="${y+3}" text-anchor="end">${value>=1000?`${(value/1000).toFixed(value>=10000?0:1)}k`:value.toFixed(0)}</text>`);} return parts.join("");
+  }
+
+  _dualGrid(width,height,left,right,top,bottom,maxLeft,maxRight) {
+    const plotH=height-top-bottom,parts=[];
+    for(let i=0;i<=3;i++){
+      const y=top+plotH*i/3,leftValue=maxLeft*(1-i/3),rightValue=maxRight*(1-i/3);
+      const leftLabel=leftValue>=1000?`${(leftValue/1000).toFixed(leftValue>=10000?0:1)}k`:leftValue.toFixed(0);
+      parts.push(`<line class="grid-line" x1="${left}" x2="${width-right}" y1="${y}" y2="${y}"/><text class="axis" x="${left-5}" y="${y+3}" text-anchor="end">${leftLabel}</text><text class="axis" data-axis="calories" x="${width-right+5}" y="${y+3}" style="fill:var(--hb-orange)">${rightValue.toFixed(0)}</text>`);
+    }
+    return parts.join("");
   }
 
   _dayLabels(days,width,height,left,right) {
