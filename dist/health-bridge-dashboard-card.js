@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.0
+/* Health Bridge Dashboard Card v0.5.1
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.0";
+const HB_VERSION = "0.5.1";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -86,6 +86,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
     this._loadingHistory = false;
     this._renderSignature = "";
     this._historyDataSignature = "";
+    this._liveHeartHistory = [];
     this._expandedChart = null;
     this._chartStateKey = "";
   }
@@ -115,6 +116,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    this._captureHeartRate();
     const signature = this._relevantStateSignature();
     if (signature !== this._renderSignature) {
       this._renderSignature = signature;
@@ -443,9 +445,31 @@ class HealthBridgeDashboardCard extends HTMLElement {
   _historyPoints(metric) {
     const entity = this._entity(metric);
     const points = entity ? [...(this._history[entity] || [])] : [];
+    if (metric === "heart_rate") points.push(...this._liveHeartHistory);
     const state = this._state(metric);
-    if (state && Number.isFinite(Number(state.state))) points.push({ t: Date.now(), v: Number(state.state) });
-    return points;
+    const currentValue = Number(state?.state);
+    if (Number.isFinite(currentValue) && (!points.length || points[points.length - 1].v !== currentValue)) {
+      points.push({ t: Date.now(), v: currentValue });
+    }
+    const unique = new Map();
+    points
+      .filter((point) => Number.isFinite(point.t) && Number.isFinite(point.v))
+      .sort((a, b) => a.t - b.t)
+      .forEach((point) => unique.set(`${point.t}:${point.v}`, point));
+    return [...unique.values()];
+  }
+
+  _captureHeartRate() {
+    const state = this._state("heart_rate");
+    const value = Number(state?.state);
+    if (!Number.isFinite(value)) return;
+    const rawTime = state.last_changed || state.last_updated;
+    const parsedTime = rawTime ? new Date(rawTime).getTime() : Date.now();
+    const time = Number.isFinite(parsedTime) ? parsedTime : Date.now();
+    const last = this._liveHeartHistory[this._liveHeartHistory.length - 1];
+    if (!last || last.v !== value) this._liveHeartHistory.push({ t: time, v: value });
+    const cutoff = Date.now() - 86400000;
+    this._liveHeartHistory = this._liveHeartHistory.filter((point) => point.t >= cutoff);
   }
 
   _daily(metric) {
@@ -507,9 +531,10 @@ class HealthBridgeDashboardCard extends HTMLElement {
       ? points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ")
       : `${left},${currentY} ${left+plotW},${currentY}`;
     const area=hasHistory?`${left},${top+plotH} ${coords} ${left+plotW},${top+plotH}`:"";
+    const historyMarkers=hasHistory?points.slice(0,-1).map((point)=>{const x=left+(point.t-start)/(end-start)*plotW,y=top+plotH-(point.v-min)/(max-min)*plotH;return `<circle class="heart-point" cx="${x}" cy="${y}" r="4" fill="var(--hb-red)"><title>${point.v.toFixed(0)} bpm</title></circle>`;}).join(""):"";
     const currentMarker=`<circle cx="${left+plotW}" cy="${currentY}" r="5" fill="var(--hb-red)"><title>${current.v.toFixed(0)} bpm</title></circle><text class="axis" x="${left+plotW-8}" y="${Math.max(top+10,currentY-9)}" text-anchor="end" style="fill:var(--hb-red)">${current.v.toFixed(0)} bpm</text>`;
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-red)"></i>bpm</span></span>`;
-    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img" data-current-only="${!hasHistory}">${this._grid(width,height,left,right,top,bottom,max,min)}${hasHistory?`<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/>`:""}<polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"${hasHistory?"":` stroke-dasharray="8 7" opacity=".75"`}/>${currentMarker}<text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img" data-current-only="${!hasHistory}">${this._grid(width,height,left,right,top,bottom,max,min)}${hasHistory?`<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/>`:""}<polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"${hasHistory?"":` stroke-dasharray="8 7" opacity=".75"`}/>${historyMarkers}${currentMarker}<text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
     return this._collapsibleChart("heart", this._t("heart"), legend, svg, true);
   }
 
@@ -550,13 +575,19 @@ class HealthBridgeDashboardCard extends HTMLElement {
     try {
       const days=Math.max(2,Math.min(31,Number(this.config.days)||7));
       const start=new Date(Date.now()-days*86400000).toISOString();
-      const path=`history/period/${encodeURIComponent(start)}?filter_entity_id=${encodeURIComponent(entities.join(","))}&minimal_response&no_attributes`;
+      const end=new Date().toISOString();
+      const path=`history/period/${encodeURIComponent(start)}?filter_entity_id=${encodeURIComponent(entities.join(","))}&end_time=${encodeURIComponent(end)}&minimal_response&no_attributes`;
       const response=await this._hass.callApi("GET",path);
       const history={};
       (response||[]).forEach((series,index)=>{
         const fallback=entities[index], entity=series?.find((p)=>p.entity_id)?.entity_id||fallback;
         if (!entity) return;
-        history[entity]=(series||[]).map((point)=>({ t:new Date(point.last_changed||point.last_updated).getTime(), v:Number(point.state) })).filter((point)=>Number.isFinite(point.t)&&Number.isFinite(point.v));
+        history[entity]=(series||[]).map((point)=>{
+          const rawTime=point.last_changed??point.last_updated??point.lc??point.lu;
+          const numericTime=Number(rawTime);
+          const t=Number.isFinite(numericTime) ? numericTime*(numericTime<1e12?1000:1) : new Date(rawTime).getTime();
+          return { t, v:Number(point.state??point.s) };
+        }).filter((point)=>Number.isFinite(point.t)&&Number.isFinite(point.v));
       });
       const signature=this._historySignature(history);
       if(signature!==this._historyDataSignature){this._history=history;this._historyDataSignature=signature;shouldRender=true;}

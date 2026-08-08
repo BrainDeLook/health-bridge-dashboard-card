@@ -79,6 +79,26 @@ assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded
 assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 720 270"/);
 assert.match(card.shadowRoot.innerHTML, /data-current-only="true"/);
 assert.match(card.shadowRoot.innerHTML, />72 bpm<\/text>/);
+card._history["sensor.heart_rate_alice"] = [
+  { t: Date.now() - 7200000, v: 84 },
+  { t: Date.now() - 3600000, v: 100 },
+];
+card._render();
+assert.match(card.shadowRoot.innerHTML, /data-current-only="false"/);
+assert.match(card.shadowRoot.innerHTML, /class="heart-point"/);
+assert.match(card.shadowRoot.innerHTML, />84 bpm<\/title>/);
+assert.match(card.shadowRoot.innerHTML, />100 bpm<\/title>/);
+let requestedHistoryPath = "";
+card._hass.callApi = async (_method, path) => {
+  requestedHistoryPath = path;
+  return [[
+    { entity_id: "sensor.heart_rate_alice", s: "84", lu: (Date.now() - 7200000) / 1000 },
+    { s: "100", lu: (Date.now() - 3600000) / 1000 },
+  ]];
+};
+await card._loadHistory(["sensor.heart_rate_alice"], "heart-test");
+assert.match(requestedHistoryPath, /end_time=/);
+assert.deepEqual(card._history["sensor.heart_rate_alice"].map((point) => point.v), [84, 100]);
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
