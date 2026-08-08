@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.5
+/* Health Bridge Dashboard Card v0.5.6
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.5";
+const HB_VERSION = "0.5.6";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -345,6 +345,8 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .chart-tooltip rect { fill:var(--ha-card-background,var(--card-background-color)); stroke:var(--divider-color); stroke-width:1; }
       .chart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:13px; font-weight:700; }
       .chart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:11px; }
+      .heart-sample .tooltip-value { font-size:17px; }
+      .heart-sample .tooltip-time { font-size:14px; }
       .grid-line { stroke:var(--divider-color); stroke-width:1; }
       .empty { padding:34px 12px; text-align:center; }
       .empty ha-icon { width:46px; height:46px; color:var(--secondary-text-color); }
@@ -566,9 +568,12 @@ class HealthBridgeDashboardCard extends HTMLElement {
   _chartSample(point,x,y,width,valueLabel,className,mark) {
     const time=new Intl.DateTimeFormat(this._lang(),{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(point.t));
     const received=`${this._t("received")}: ${time}`;
-    const tooltipWidth=176,tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-10:x+10,tooltipY=y<56?y+11:y-47;
+    const isHeart=className==="heart-sample";
+    const tooltipWidth=isHeart?226:176,tooltipHeight=isHeart?50:38;
+    const tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-10:x+10,tooltipY=y<(isHeart?70:56)?y+11:y-tooltipHeight-9;
+    const valueY=isHeart?19:15,timeY=isHeart?40:31,textX=isHeart?12:9;
     const label=`${valueLabel}, ${received}`;
-    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="38" rx="8"/><text class="tooltip-value" x="9" y="15">${this._escape(valueLabel)}</text><text class="tooltip-time" x="9" y="31">${this._escape(received)}</text></g></g>`;
+    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" data-tooltip-size="${isHeart?"large":"normal"}" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="${tooltipHeight}" rx="8"/><text class="tooltip-value" x="${textX}" y="${valueY}">${this._escape(valueLabel)}</text><text class="tooltip-time" x="${textX}" y="${timeY}">${this._escape(received)}</text></g></g>`;
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {
