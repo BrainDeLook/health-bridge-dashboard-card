@@ -27,6 +27,7 @@ Mushroom, card-mod, or any other frontend dependency.
 - BPM marker tooltips show when each value was received by Home Assistant
 - Larger chart titles, legends, axes and receipt-time tooltips for steps and active calories
 - Native Home Assistant graphical card editor with entity pickers
+- One-click profile import for multi-profile Health Bridge installations
 - Seven-day activity chart
 - Stacked sleep-stage chart
 - 24-hour heart-rate chart
@@ -116,6 +117,13 @@ history period, daily goals and visible sections. Expand **Metric entities** to
 select any sensor in Home Assistant for each displayed value. This makes it
 possible to combine health entities from different people, integrations or Home
 Assistant servers mirrored into the current instance.
+
+At the top of the editor, **Quick profile import** lists every profile discovered
+from Health Bridge entity suffixes. Selecting a profile immediately fills all
+available metric entity fields and sets `user_id`. The imported mapping is only
+a starting point: expand **Metric entities** afterward to replace any individual
+entity manually. Importing another profile replaces the current metric mapping
+with the entities available for the newly selected profile.
 
 The activity chart uses two stable axes because steps and kilocalories are
 different units: steps are scaled against `step_goal` on the left, while active

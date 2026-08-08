@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.7
+/* Health Bridge Dashboard Card v0.6.0
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.7";
+const HB_VERSION = "0.6.0";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -132,6 +132,27 @@ class HealthBridgeDashboardCard extends HTMLElement {
       show_activity: true, show_sleep: true, show_heart_rate: true, show_body: true,
       entities: {},
     };
+  }
+
+  static getConfigElement() {
+    return document.createElement("health-bridge-dashboard-card-editor");
+  }
+
+  static discoverProfiles(hass) {
+    const profiles = new Map();
+    for (const entityId of Object.keys(hass?.states || {})) {
+      for (const metric of HB_METRICS) {
+        const prefix = `sensor.${metric}_`;
+        if (!entityId.startsWith(prefix) || entityId.length === prefix.length) continue;
+        const id = entityId.slice(prefix.length);
+        if (!profiles.has(id)) profiles.set(id, {});
+        profiles.get(id)[metric] = entityId;
+        break;
+      }
+    }
+    return [...profiles.entries()]
+      .map(([id, entities]) => ({ id, entities, count: Object.keys(entities).length }))
+      .sort((a, b) => a.id.localeCompare(b.id));
   }
 
   static getConfigForm() {
@@ -637,8 +658,82 @@ class HealthBridgeDashboardCard extends HTMLElement {
   }
 }
 
+class HealthBridgeDashboardCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._config = {};
+    this._profileSignature = "";
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    const signature = JSON.stringify(HealthBridgeDashboardCard.discoverProfiles(hass));
+    if (signature !== this._profileSignature) {
+      this._profileSignature = signature;
+      this._render();
+    } else if (this._form) {
+      this._form.hass = hass;
+    }
+  }
+
+  setConfig(config) {
+    this._config = { ...config };
+    this._render();
+  }
+
+  connectedCallback() { this._render(); }
+
+  _render() {
+    if (!this._hass || !globalThis.document) return;
+    const lang = (this._hass.language || globalThis.navigator?.language || "en").toLowerCase().startsWith("ru") ? "ru" : "en";
+    const profiles = HealthBridgeDashboardCard.discoverProfiles(this._hass);
+    const base = HealthBridgeDashboardCard.getConfigForm();
+    const profileField = {
+      name: "_profile_import",
+      selector: { select: { mode: "dropdown", options: profiles.map((profile) => ({
+        value: profile.id,
+        label: `${profile.id} (${profile.count} ${lang === "ru" ? "сущн." : "entities"})`,
+      })) } },
+    };
+    this.shadowRoot.innerHTML = `<style>:host{display:block}.profile-note{margin:0 0 10px;padding:10px 12px;border-radius:10px;background:var(--secondary-background-color);color:var(--secondary-text-color);font-size:12px;line-height:1.4}</style><div class="profile-note">${profiles.length ? (lang === "ru" ? "Выберите профиль — найденные сущности автоматически заполнят поля ниже. После импорта любую сущность можно заменить вручную." : "Select a profile to fill the entity fields below automatically. Any imported entity can still be changed manually.") : (lang === "ru" ? "Профили Health Bridge пока не найдены. Выполните хотя бы одну синхронизацию." : "No Health Bridge profiles found yet. Complete at least one synchronization.")}</div>`;
+    const form = document.createElement("ha-form");
+    form.hass = this._hass;
+    form.data = { ...this._config, _profile_import: undefined };
+    form.schema = [profileField, ...base.schema];
+    form.computeLabel = (schema) => schema.name === "_profile_import"
+      ? (lang === "ru" ? "Быстрый импорт профиля" : "Quick profile import")
+      : base.computeLabel(schema);
+    form.computeHelper = (schema) => schema.name === "_profile_import"
+      ? (lang === "ru" ? "Импортирует все доступные сущности выбранного профиля" : "Imports every available entity from the selected profile")
+      : base.computeHelper?.(schema);
+    form.addEventListener("value-changed", (event) => this._valueChanged(event, profiles));
+    this.shadowRoot.appendChild(form);
+    this._form = form;
+  }
+
+  _valueChanged(event, profiles) {
+    const next = { ...(event.detail?.value || this._config) };
+    const selected = next._profile_import;
+    delete next._profile_import;
+    if (selected) {
+      const profile = profiles.find((item) => item.id === selected);
+      if (profile) {
+        next.user_id = profile.id;
+        next.entities = { ...profile.entities };
+      }
+    }
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      bubbles: true, composed: true, detail: { config: next },
+    }));
+  }
+}
+
 if (!customElements.get("health-bridge-dashboard-card")) {
   customElements.define("health-bridge-dashboard-card", HealthBridgeDashboardCard);
+}
+if (!customElements.get("health-bridge-dashboard-card-editor")) {
+  customElements.define("health-bridge-dashboard-card-editor", HealthBridgeDashboardCardEditor);
 }
 
 window.customCards = window.customCards || [];
