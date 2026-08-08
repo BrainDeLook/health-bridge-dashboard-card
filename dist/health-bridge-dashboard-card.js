@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.3
+/* Health Bridge Dashboard Card v0.5.4
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.3";
+const HB_VERSION = "0.5.4";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -24,7 +24,7 @@ const HB_TRANSLATIONS = {
     weight: "Weight", bodyFat: "Body fat", leanMass: "Lean mass", vo2: "VO₂ max",
     recovery: "Cardio recovery", workout: "Latest workout", today: "Today",
     switchChart: "Switch chart",
-    historyUnavailable: "History is unavailable. Current values will keep working.", user: "Profile",
+    historyUnavailable: "History is unavailable. Current values will keep working.", user: "Profile", received: "Received",
   },
   ru: {
     title: "Здоровье", synced: "Синхронизация", noData: "Сенсоры Health Bridge не найдены",
@@ -36,7 +36,7 @@ const HB_TRANSLATIONS = {
     weight: "Вес", bodyFat: "Жир", leanMass: "Безжировая масса", vo2: "VO₂ max",
     recovery: "Восстановление", workout: "Последняя тренировка", today: "Сегодня",
     switchChart: "Переключить график",
-    historyUnavailable: "История недоступна. Текущие значения продолжат работать.", user: "Профиль",
+    historyUnavailable: "История недоступна. Текущие значения продолжат работать.", user: "Профиль", received: "Получено",
   },
 };
 
@@ -338,6 +338,13 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .legend i { display:inline-block; width:7px; height:7px; margin-right:4px; border-radius:50%; background:var(--dot); }
       svg { display:block; width:100%; height:auto; overflow:visible; }
       .axis { fill:var(--secondary-text-color); font-size:9px; }
+      .heart-sample { outline:none; cursor:help; }
+      .heart-sample .heart-hit { fill:transparent; pointer-events:all; }
+      .heart-tooltip { opacity:0; pointer-events:none; transition:opacity .12s ease; }
+      .heart-sample:hover .heart-tooltip,.heart-sample:focus .heart-tooltip,.heart-sample:focus-visible .heart-tooltip { opacity:1; }
+      .heart-tooltip rect { fill:var(--ha-card-background,var(--card-background-color)); stroke:var(--divider-color); stroke-width:1; }
+      .heart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:11px; font-weight:700; }
+      .heart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:9px; }
       .grid-line { stroke:var(--divider-color); stroke-width:1; }
       .empty { padding:34px 12px; text-align:center; }
       .empty ha-icon { width:46px; height:46px; color:var(--secondary-text-color); }
@@ -531,8 +538,8 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const tracePoints=hasHistory?[...measured,{x:left+plotW,y:currentY}]:[{x:left,y:currentY},{x:left+plotW,y:currentY}];
     const trace=this._heartTracePath(tracePoints);
     const centerY=top+plotH/2;
-    const historyMarkers=hasHistory?points.slice(0,-1).map((point)=>{const x=left+(point.t-start)/(end-start)*plotW,y=top+plotH-(point.v-min)/(max-min)*plotH;return `<circle class="heart-point" cx="${x}" cy="${y}" r="4" fill="var(--hb-red)"><title>${point.v.toFixed(0)} bpm</title></circle>`;}).join(""):"";
-    const currentMarker=`<circle cx="${left+plotW}" cy="${currentY}" r="5" fill="var(--hb-red)"><title>${current.v.toFixed(0)} bpm</title></circle><text class="axis" x="${left+plotW-8}" y="${Math.max(top+10,currentY-9)}" text-anchor="end" style="fill:var(--hb-red)">${current.v.toFixed(0)} bpm</text>`;
+    const historyMarkers=hasHistory?points.slice(0,-1).map((point)=>{const x=left+(point.t-start)/(end-start)*plotW,y=top+plotH-(point.v-min)/(max-min)*plotH;return this._heartMarker(point,x,y,4,width);}).join(""):"";
+    const currentMarker=`${this._heartMarker(current,left+plotW,currentY,5,width)}<text class="axis" x="${left+plotW-8}" y="${Math.max(top+10,currentY-9)}" text-anchor="end" style="fill:var(--hb-red)">${current.v.toFixed(0)} bpm</text>`;
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-red)"></i>bpm</span></span>`;
     const svg = `<svg viewBox="0 0 ${width} ${height}" role="img" data-current-only="${!hasHistory}">${this._grid(width,height,left,right,top,bottom,max,min)}<line class="heart-center" x1="${left}" x2="${left+plotW}" y1="${centerY}" y2="${centerY}" stroke="var(--secondary-text-color)" stroke-width="1.5" stroke-dasharray="5 7" opacity=".5"/><path class="heart-trace" d="${trace}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-dasharray="10 7" stroke-linejoin="round" stroke-linecap="round"/>${historyMarkers}${currentMarker}<text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
     return this._collapsibleChart("heart", this._t("heart"), legend, svg, true);
@@ -547,6 +554,14 @@ class HealthBridgeDashboardCard extends HTMLElement {
       path+=` L ${middle-radius},${previous.y} Q ${middle},${previous.y} ${middle},${(previous.y+next.y)/2} Q ${middle},${next.y} ${middle+radius},${next.y} L ${next.x},${next.y}`;
     }
     return path;
+  }
+
+  _heartMarker(point,x,y,r,width) {
+    const time=new Intl.DateTimeFormat(this._lang(),{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(point.t));
+    const received=`${this._t("received")}: ${time}`;
+    const tooltipWidth=154,tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-9:x+9,tooltipY=y<50?y+10:y-43;
+    const label=`${point.v.toFixed(0)} bpm, ${received}`;
+    return `<g class="heart-sample" tabindex="0" role="img" aria-label="${this._escape(label)}"><circle class="heart-hit" cx="${x}" cy="${y}" r="11"/><circle class="heart-point" cx="${x}" cy="${y}" r="${r}" fill="var(--hb-red)"/><g class="heart-tooltip" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="34" rx="7"/><text class="tooltip-value" x="8" y="13">${point.v.toFixed(0)} bpm</text><text class="tooltip-time" x="8" y="27">${this._escape(received)}</text></g></g>`;
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {

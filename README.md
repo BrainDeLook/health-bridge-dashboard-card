@@ -24,6 +24,7 @@ Mushroom, card-mod, or any other frontend dependency.
 - Activity and heart-rate accordion with equal responsive chart heights
 - Stable dual-axis activity scaling for steps and active calories
 - Dashed cardiogram-style heart-rate trace with a centered reference line and visible measurement markers
+- BPM marker tooltips show when each value was received by Home Assistant
 - Native Home Assistant graphical card editor with entity pickers
 - Seven-day activity chart
 - Stacked sleep-stage chart
@@ -124,7 +125,10 @@ card also keeps live heart-rate changes observed while the dashboard is open.
 The dashed trace holds each measured value until the next reading and uses a
 soft cardiogram-style transition instead of straight point-to-point segments.
 A second dashed reference line stays centered in the plot. With only one value,
-the trace remains horizontal and shows a numeric marker.
+the trace remains horizontal and shows a numeric marker. Hover a BPM marker, or
+focus/tap it on a touch device, to see the date and time when Home Assistant
+received that state. This is the receipt time, not the original medical
+measurement time.
 
 The activity chart is expanded the first time the card is loaded and the
 heart-rate chart is collapsed. Either chart header acts as the same toggle:
