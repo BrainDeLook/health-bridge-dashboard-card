@@ -25,6 +25,7 @@ Mushroom, card-mod, or any other frontend dependency.
 - Stable dual-axis activity scaling for steps and active calories
 - Dashed cardiogram-style heart-rate trace with a centered reference line and visible measurement markers
 - BPM marker tooltips show when each value was received by Home Assistant
+- Larger chart titles, legends, axes and receipt-time tooltips for steps and active calories
 - Native Home Assistant graphical card editor with entity pickers
 - Seven-day activity chart
 - Stacked sleep-stage chart
@@ -118,7 +119,10 @@ Assistant servers mirrored into the current instance.
 
 The activity chart uses two stable axes because steps and kilocalories are
 different units: steps are scaled against `step_goal` on the left, while active
-calories are scaled against `calorie_goal` on the right. The heart-rate chart
+calories are scaled against `calorie_goal` on the right. Hover or focus a daily
+step bar or calorie point to see its value and the time that source state was
+received by Home Assistant. All chart labels use a larger size for readability.
+The heart-rate chart
 uses every recorded state change from the last 24 hours and marks previous BPM
 measurements as individual points. If Recorder returns no earlier samples, the
 card also keeps live heart-rate changes observed while the dashboard is open.

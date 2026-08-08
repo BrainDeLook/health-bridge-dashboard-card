@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.4
+/* Health Bridge Dashboard Card v0.5.5
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.4";
+const HB_VERSION = "0.5.5";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -326,7 +326,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:10px; margin-top:12px; }
       .chart { min-width:0; border:1px solid var(--divider-color); border-radius:13px; padding:11px; }
       .chart.wide { grid-column:1/-1; }
-      .chart-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; font-size:13px; font-weight:700; }
+      .chart-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; font-size:15px; font-weight:700; }
       .chart-toggle { appearance:none; width:100%; margin:0; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
       .chart-toggle:focus-visible { outline:2px solid var(--primary-color); outline-offset:5px; border-radius:5px; }
       .chart-heading { display:flex; align-items:center; gap:7px; min-width:0; }
@@ -334,17 +334,17 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .chart-toggle[aria-expanded="true"] .chart-chevron { transform:rotate(180deg); }
       .chart-body { margin-top:6px; }
       .chart-body[hidden] { display:none; }
-      .legend { display:flex; gap:9px; flex-wrap:wrap; color:var(--secondary-text-color); font-size:10px; font-weight:500; }
-      .legend i { display:inline-block; width:7px; height:7px; margin-right:4px; border-radius:50%; background:var(--dot); }
+      .legend { display:flex; gap:10px; flex-wrap:wrap; color:var(--secondary-text-color); font-size:12px; font-weight:500; }
+      .legend i { display:inline-block; width:8px; height:8px; margin-right:4px; border-radius:50%; background:var(--dot); }
       svg { display:block; width:100%; height:auto; overflow:visible; }
-      .axis { fill:var(--secondary-text-color); font-size:9px; }
-      .heart-sample { outline:none; cursor:help; }
-      .heart-sample .heart-hit { fill:transparent; pointer-events:all; }
-      .heart-tooltip { opacity:0; pointer-events:none; transition:opacity .12s ease; }
-      .heart-sample:hover .heart-tooltip,.heart-sample:focus .heart-tooltip,.heart-sample:focus-visible .heart-tooltip { opacity:1; }
-      .heart-tooltip rect { fill:var(--ha-card-background,var(--card-background-color)); stroke:var(--divider-color); stroke-width:1; }
-      .heart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:11px; font-weight:700; }
-      .heart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:9px; }
+      .axis { fill:var(--secondary-text-color); font-size:12px; }
+      .chart-sample { outline:none; cursor:help; }
+      .chart-sample .chart-hit { fill:transparent; pointer-events:all; }
+      .chart-tooltip { opacity:0; pointer-events:none; transition:opacity .12s ease; }
+      .chart-sample:hover .chart-tooltip,.chart-sample:focus .chart-tooltip,.chart-sample:focus-visible .chart-tooltip { opacity:1; }
+      .chart-tooltip rect { fill:var(--ha-card-background,var(--card-background-color)); stroke:var(--divider-color); stroke-width:1; }
+      .chart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:13px; font-weight:700; }
+      .chart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:11px; }
       .grid-line { stroke:var(--divider-color); stroke-width:1; }
       .empty { padding:34px 12px; text-align:center; }
       .empty ha-icon { width:46px; height:46px; color:var(--secondary-text-color); }
@@ -456,7 +456,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const state = this._state(metric);
     const currentValue = Number(state?.state);
     if (Number.isFinite(currentValue) && (!points.length || points[points.length - 1].v !== currentValue)) {
-      points.push({ t: Date.now(), v: currentValue });
+      const rawTime=state.last_changed||state.last_updated;
+      const parsedTime=rawTime?new Date(rawTime).getTime():Date.now();
+      points.push({ t:Number.isFinite(parsedTime)?parsedTime:Date.now(), v:currentValue });
     }
     const unique = new Map();
     points
@@ -486,28 +488,28 @@ class HealthBridgeDashboardCard extends HTMLElement {
     for (let offset = days - 1; offset >= 0; offset--) {
       const date = new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate() - offset);
       const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      const item = { date, value: 0, has: false }; index.set(key, item); result.push(item);
+      const item = { date, value: 0, has: false, t: null }; index.set(key, item); result.push(item);
     }
     for (const point of this._historyPoints(metric)) {
       const date = new Date(point.t);
       const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
       const item = index.get(key);
-      if (item && Number.isFinite(point.v)) { item.value = item.has ? Math.max(item.value, point.v) : point.v; item.has = true; }
+      if (item && Number.isFinite(point.v) && (!item.has || point.v>=item.value)) { item.value=point.v; item.t=point.t; item.has=true; }
     }
     return result;
   }
 
   _activityChart() {
     const steps = this._daily("steps"), calories = this._daily("active_calories");
-    const width = 560, height = 210, left = 32, right = 34, top = 12, bottom = 28;
+    const width = 560, height = 210, left = 40, right = 42, top = 12, bottom = 32;
     const plotW = width-left-right, plotH = height-top-bottom, slot = plotW/steps.length;
     const stepGoal = Math.max(1, Number(this.config.step_goal) || 10000);
     const calorieGoal = Math.max(1, Number(this.config.calorie_goal) || 600);
     const maxSteps = Math.max(stepGoal, Math.ceil(Math.max(0,...steps.map((x)=>x.value))/1000)*1000);
     const maxCal = Math.max(calorieGoal, Math.ceil(Math.max(0,...calories.map((x)=>x.value))/100)*100);
-    const bars = steps.map((item,i)=>{ const h=item.has ? item.value/maxSteps*plotH : 0; return `<rect x="${left+i*slot+slot*.18}" y="${top+plotH-h}" width="${slot*.48}" height="${h}" rx="4" fill="var(--hb-blue)" opacity=".85"><title>${item.value.toFixed(0)} ${this._t("steps")}</title></rect>`; }).join("");
+    const bars = steps.map((item,i)=>{const h=item.has?item.value/maxSteps*plotH:0,x=left+i*slot+slot*.18,y=top+plotH-h,barWidth=slot*.48;const mark=`<rect class="step-bar" x="${x}" y="${y}" width="${barWidth}" height="${h}" rx="4" fill="var(--hb-blue)" opacity=".85"/>`;return item.has?this._chartSample(item,x+barWidth/2,y,width,`${item.value.toFixed(0)} ${this._t("steps")}`,"activity-step",mark):mark;}).join("");
     const linePoints = calories.map((item,i)=>`${left+i*slot+slot*.5},${top+plotH-(item.has?item.value/maxCal*plotH:0)}`).join(" ");
-    const dots = calories.map((item,i)=>item.has?`<circle cx="${left+i*slot+slot*.5}" cy="${top+plotH-item.value/maxCal*plotH}" r="3" fill="var(--hb-orange)"><title>${item.value.toFixed(0)} kcal</title></circle>`:"").join("");
+    const dots = calories.map((item,i)=>{if(!item.has)return "";const x=left+i*slot+slot*.5,y=top+plotH-item.value/maxCal*plotH;const mark=`<circle class="chart-hit" cx="${x}" cy="${y}" r="11"/><circle class="calorie-point" cx="${x}" cy="${y}" r="4" fill="var(--hb-orange)"/>`;return this._chartSample(item,x,y,width,`${item.value.toFixed(0)} kcal`,"activity-calorie",mark);}).join("");
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-blue)"></i>${this._t("steps")}</span><span><i style="--dot:var(--hb-orange)"></i>kcal</span></span>`;
     const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._dualGrid(width,height,left,right,top,bottom,maxSteps,maxCal)}${bars}<polyline points="${linePoints}" fill="none" stroke="var(--hb-orange)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}${this._dayLabels(steps,width,height,left,right)}</svg>`;
     return this._collapsibleChart("activity", this._t("activity"), legend, svg);
@@ -515,7 +517,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
 
   _sleepChart() {
     const deep=this._daily("sleep_deep_hours"), core=this._daily("sleep_core_hours"), rem=this._daily("sleep_rem_hours");
-    const width=560,height=210,left=28,right=12,top=12,bottom=28,plotW=width-left-right,plotH=height-top-bottom,slot=plotW/deep.length;
+    const width=560,height=210,left=36,right=14,top=12,bottom=32,plotW=width-left-right,plotH=height-top-bottom,slot=plotW/deep.length;
     const totals=deep.map((x,i)=>(x.has?x.value:0)+(core[i].has?core[i].value:0)+(rem[i].has?rem[i].value:0));
     const max=Math.max(10,Math.ceil(Math.max(...totals)));
     const colors=["#3949ab","#7986cb","#26c6da"];
@@ -529,7 +531,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
     if (!points.length) return "";
     // Match the activity chart's 8:3 aspect ratio so both expanded blocks
     // occupy exactly the same responsive height at every card width.
-    const width=720,height=270,left=34,right=12,top=12,bottom=26,plotW=width-left-right,plotH=height-top-bottom;
+    const width=720,height=270,left=44,right=14,top=12,bottom=32,plotW=width-left-right,plotH=height-top-bottom;
     const values=points.map((p)=>p.v),min=Math.max(30,Math.floor(Math.min(...values)/10)*10-10),max=Math.max(min+20,Math.ceil(Math.max(...values)/10)*10+10);
     const start=Date.now()-86400000,end=Date.now();
     const current=points[points.length-1],currentY=top+plotH-(current.v-min)/(max-min)*plotH;
@@ -557,11 +559,16 @@ class HealthBridgeDashboardCard extends HTMLElement {
   }
 
   _heartMarker(point,x,y,r,width) {
+    const mark=`<circle class="chart-hit" cx="${x}" cy="${y}" r="12"/><circle class="heart-point" cx="${x}" cy="${y}" r="${r}" fill="var(--hb-red)"/>`;
+    return this._chartSample(point,x,y,width,`${point.v.toFixed(0)} bpm`,"heart-sample",mark);
+  }
+
+  _chartSample(point,x,y,width,valueLabel,className,mark) {
     const time=new Intl.DateTimeFormat(this._lang(),{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(point.t));
     const received=`${this._t("received")}: ${time}`;
-    const tooltipWidth=154,tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-9:x+9,tooltipY=y<50?y+10:y-43;
-    const label=`${point.v.toFixed(0)} bpm, ${received}`;
-    return `<g class="heart-sample" tabindex="0" role="img" aria-label="${this._escape(label)}"><circle class="heart-hit" cx="${x}" cy="${y}" r="11"/><circle class="heart-point" cx="${x}" cy="${y}" r="${r}" fill="var(--hb-red)"/><g class="heart-tooltip" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="34" rx="7"/><text class="tooltip-value" x="8" y="13">${point.v.toFixed(0)} bpm</text><text class="tooltip-time" x="8" y="27">${this._escape(received)}</text></g></g>`;
+    const tooltipWidth=176,tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-10:x+10,tooltipY=y<56?y+11:y-47;
+    const label=`${valueLabel}, ${received}`;
+    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="38" rx="8"/><text class="tooltip-value" x="9" y="15">${this._escape(valueLabel)}</text><text class="tooltip-time" x="9" y="31">${this._escape(received)}</text></g></g>`;
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {
