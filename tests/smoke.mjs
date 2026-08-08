@@ -138,6 +138,9 @@ assert.match(card.shadowRoot.innerHTML, /\.chart-tooltip \.tooltip-value \{[^}]+
 assert.match(card.shadowRoot.innerHTML, /data-tooltip-size="normal"[^>]+translate/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-center"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-trace"/);
+assert.match(card.shadowRoot.innerHTML, /data-interpolation="linear"/);
+assert.match(card.shadowRoot.innerHTML, /class="heart-trace" d="M [^"]+ L [^"]+ L /);
+assert.doesNotMatch(card.shadowRoot.innerHTML, /class="heart-trace" d="[^"]* Q /);
 assert.doesNotMatch(card.shadowRoot.innerHTML, /<polyline[^>]+stroke="var\(--hb-red\)"/);
 assert.match(card.shadowRoot.innerHTML, />84 bpm<\/text>/);
 assert.match(card.shadowRoot.innerHTML, />100 bpm<\/text>/);
