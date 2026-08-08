@@ -73,6 +73,7 @@ assert.match(card.shadowRoot.innerHTML, /@container \(max-width:430px\)/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="false"/);
 assert.match(card.shadowRoot.innerHTML, /data-axis="calories"/);
+assert.match(card.shadowRoot.innerHTML, /data-axis="steps"[^>]+fill:var\(--hb-blue\)/);
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
