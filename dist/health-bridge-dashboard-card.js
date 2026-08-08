@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.6
+/* Health Bridge Dashboard Card v0.5.7
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.6";
+const HB_VERSION = "0.5.7";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -343,10 +343,10 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .chart-tooltip { opacity:0; pointer-events:none; transition:opacity .12s ease; }
       .chart-sample:hover .chart-tooltip,.chart-sample:focus .chart-tooltip,.chart-sample:focus-visible .chart-tooltip { opacity:1; }
       .chart-tooltip rect { fill:var(--ha-card-background,var(--card-background-color)); stroke:var(--divider-color); stroke-width:1; }
-      .chart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:13px; font-weight:700; }
-      .chart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:11px; }
-      .heart-sample .tooltip-value { font-size:17px; }
-      .heart-sample .tooltip-time { font-size:14px; }
+      .chart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:16px; font-weight:700; }
+      .chart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:14px; }
+      .heart-sample .tooltip-value { font-size:21px; }
+      .heart-sample .tooltip-time { font-size:18px; }
       .grid-line { stroke:var(--divider-color); stroke-width:1; }
       .empty { padding:34px 12px; text-align:center; }
       .empty ha-icon { width:46px; height:46px; color:var(--secondary-text-color); }
@@ -569,11 +569,11 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const time=new Intl.DateTimeFormat(this._lang(),{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(point.t));
     const received=`${this._t("received")}: ${time}`;
     const isHeart=className==="heart-sample";
-    const tooltipWidth=isHeart?226:176,tooltipHeight=isHeart?50:38;
-    const tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-10:x+10,tooltipY=y<(isHeart?70:56)?y+11:y-tooltipHeight-9;
-    const valueY=isHeart?19:15,timeY=isHeart?40:31,textX=isHeart?12:9;
+    const tooltipWidth=isHeart?284:220,tooltipHeight=isHeart?64:50;
+    const tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-11:x+11,tooltipY=y<(isHeart?84:68)?y+12:y-tooltipHeight-10;
+    const valueY=isHeart?24:19,timeY=isHeart?51:41,textX=isHeart?15:12;
     const label=`${valueLabel}, ${received}`;
-    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" data-tooltip-size="${isHeart?"large":"normal"}" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="${tooltipHeight}" rx="8"/><text class="tooltip-value" x="${textX}" y="${valueY}">${this._escape(valueLabel)}</text><text class="tooltip-time" x="${textX}" y="${timeY}">${this._escape(received)}</text></g></g>`;
+    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" data-tooltip-size="${isHeart?"large":"normal"}" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"/><text class="tooltip-value" x="${textX}" y="${valueY}">${this._escape(valueLabel)}</text><text class="tooltip-time" x="${textX}" y="${timeY}">${this._escape(received)}</text></g></g>`;
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {
