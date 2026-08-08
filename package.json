@@ -1,6 +1,6 @@
 {
   "name": "health-bridge-dashboard-card",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "type": "module",
   "scripts": {

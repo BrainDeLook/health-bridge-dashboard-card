@@ -87,11 +87,14 @@ card._history["sensor.heart_rate_alice"] = [
 card._render();
 assert.match(card.shadowRoot.innerHTML, /data-current-only="false"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-point"/);
+assert.match(card.shadowRoot.innerHTML, /class="heart-tooltip"/);
+assert.match(card.shadowRoot.innerHTML, /Received:/);
+assert.match(card.shadowRoot.innerHTML, /class="heart-sample" tabindex="0"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-center"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-trace"/);
 assert.doesNotMatch(card.shadowRoot.innerHTML, /<polyline[^>]+stroke="var\(--hb-red\)"/);
-assert.match(card.shadowRoot.innerHTML, />84 bpm<\/title>/);
-assert.match(card.shadowRoot.innerHTML, />100 bpm<\/title>/);
+assert.match(card.shadowRoot.innerHTML, />84 bpm<\/text>/);
+assert.match(card.shadowRoot.innerHTML, />100 bpm<\/text>/);
 let requestedHistoryPath = "";
 card._hass.callApi = async (_method, path) => {
   requestedHistoryPath = path;
