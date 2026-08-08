@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.4.1
+/* Health Bridge Dashboard Card v0.4.2
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.4.1";
+const HB_VERSION = "0.4.2";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -49,6 +49,8 @@ class HealthBridgeDashboardCard extends HTMLElement {
     this._historyAt = 0;
     this._historyError = false;
     this._loadingHistory = false;
+    this._renderSignature = "";
+    this._historyDataSignature = "";
     this._expandedChart = null;
     this._chartStateKey = "";
   }
@@ -71,12 +73,17 @@ class HealthBridgeDashboardCard extends HTMLElement {
       throw new Error("entities must be a mapping of metric names to entity IDs");
     }
     this._historyKey = "";
+    this._renderSignature = this._relevantStateSignature();
     this._render();
   }
 
   set hass(hass) {
     this._hass = hass;
-    this._render();
+    const signature = this._relevantStateSignature();
+    if (signature !== this._renderSignature) {
+      this._renderSignature = signature;
+      this._render();
+    }
     this._scheduleHistory();
   }
 
@@ -133,6 +140,21 @@ class HealthBridgeDashboardCard extends HTMLElement {
 
   _availableMetrics() {
     return HB_METRICS.filter((metric) => this._state(metric));
+  }
+
+  _relevantStateSignature() {
+    if (!this.config || !this._hass) return "";
+    const values = [this._lang()];
+    for (const metric of HB_METRICS) {
+      const entityId = this._entity(metric) || "";
+      const state = entityId ? this._hass.states[entityId] : undefined;
+      values.push(entityId, state?.state ?? "", state?.attributes?.unit_of_measurement ?? "");
+    }
+    return JSON.stringify(values);
+  }
+
+  _historySignature(history) {
+    return JSON.stringify(Object.keys(history).sort().map((entityId) => [entityId, history[entityId]]));
   }
 
   _escape(value) {
@@ -408,7 +430,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
   }
 
   async _loadHistory(entities,key) {
+    const hadHistoryError=this._historyError;
     this._loadingHistory=true; this._historyError=false;
+    let shouldRender=hadHistoryError;
     try {
       const days=Math.max(2,Math.min(31,Number(this.config.days)||7));
       const start=new Date(Date.now()-days*86400000).toISOString();
@@ -420,11 +444,13 @@ class HealthBridgeDashboardCard extends HTMLElement {
         if (!entity) return;
         history[entity]=(series||[]).map((point)=>({ t:new Date(point.last_changed||point.last_updated).getTime(), v:Number(point.state) })).filter((point)=>Number.isFinite(point.t)&&Number.isFinite(point.v));
       });
-      this._history=history; this._historyKey=key; this._historyAt=Date.now();
+      const signature=this._historySignature(history);
+      if(signature!==this._historyDataSignature){this._history=history;this._historyDataSignature=signature;shouldRender=true;}
+      this._historyKey=key; this._historyAt=Date.now();
     } catch (error) {
       console.warn("Health Bridge Dashboard Card: unable to load history",error);
-      this._historyError=true; this._historyKey=key; this._historyAt=Date.now();
-    } finally { this._loadingHistory=false; this._render(); }
+      shouldRender=!hadHistoryError; this._historyError=true; this._historyKey=key; this._historyAt=Date.now();
+    } finally { this._loadingHistory=false; if(shouldRender)this._render(); }
   }
 }
 
