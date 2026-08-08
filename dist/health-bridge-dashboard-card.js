@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.5.1
+/* Health Bridge Dashboard Card v0.5.2
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.5.1";
+const HB_VERSION = "0.5.2";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -527,15 +527,26 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const start=Date.now()-86400000,end=Date.now();
     const current=points[points.length-1],currentY=top+plotH-(current.v-min)/(max-min)*plotH;
     const hasHistory=points.length>1;
-    const coords=hasHistory
-      ? points.map((p)=>`${left+(p.t-start)/(end-start)*plotW},${top+plotH-(p.v-min)/(max-min)*plotH}`).join(" ")
-      : `${left},${currentY} ${left+plotW},${currentY}`;
-    const area=hasHistory?`${left},${top+plotH} ${coords} ${left+plotW},${top+plotH}`:"";
+    const measured=points.map((point)=>({x:left+(point.t-start)/(end-start)*plotW,y:top+plotH-(point.v-min)/(max-min)*plotH}));
+    const tracePoints=hasHistory?[...measured,{x:left+plotW,y:currentY}]:[{x:left,y:currentY},{x:left+plotW,y:currentY}];
+    const trace=this._heartTracePath(tracePoints);
+    const centerY=top+plotH/2;
     const historyMarkers=hasHistory?points.slice(0,-1).map((point)=>{const x=left+(point.t-start)/(end-start)*plotW,y=top+plotH-(point.v-min)/(max-min)*plotH;return `<circle class="heart-point" cx="${x}" cy="${y}" r="4" fill="var(--hb-red)"><title>${point.v.toFixed(0)} bpm</title></circle>`;}).join(""):"";
     const currentMarker=`<circle cx="${left+plotW}" cy="${currentY}" r="5" fill="var(--hb-red)"><title>${current.v.toFixed(0)} bpm</title></circle><text class="axis" x="${left+plotW-8}" y="${Math.max(top+10,currentY-9)}" text-anchor="end" style="fill:var(--hb-red)">${current.v.toFixed(0)} bpm</text>`;
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-red)"></i>bpm</span></span>`;
-    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img" data-current-only="${!hasHistory}">${this._grid(width,height,left,right,top,bottom,max,min)}${hasHistory?`<polygon points="${area}" fill="var(--hb-red)" opacity=".12"/>`:""}<polyline points="${coords}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"${hasHistory?"":` stroke-dasharray="8 7" opacity=".75"`}/>${historyMarkers}${currentMarker}<text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" role="img" data-current-only="${!hasHistory}">${this._grid(width,height,left,right,top,bottom,max,min)}<line class="heart-center" x1="${left}" x2="${left+plotW}" y1="${centerY}" y2="${centerY}" stroke="var(--secondary-text-color)" stroke-width="1.5" stroke-dasharray="5 7" opacity=".5"/><path class="heart-trace" d="${trace}" fill="none" stroke="var(--hb-red)" stroke-width="3" stroke-dasharray="10 7" stroke-linejoin="round" stroke-linecap="round"/>${historyMarkers}${currentMarker}<text class="axis" x="${left}" y="${height-6}">24h</text><text class="axis" x="${left+plotW}" y="${height-6}" text-anchor="end">${this._t("today")}</text></svg>`;
     return this._collapsibleChart("heart", this._t("heart"), legend, svg, true);
+  }
+
+  _heartTracePath(points) {
+    if (!points.length) return "";
+    let path=`M ${points[0].x},${points[0].y}`;
+    for(let i=1;i<points.length;i++){
+      const previous=points[i-1],next=points[i],middle=(previous.x+next.x)/2;
+      const radius=Math.min(10,Math.max(2,(next.x-previous.x)*.08));
+      path+=` L ${middle-radius},${previous.y} Q ${middle},${previous.y} ${middle},${(previous.y+next.y)/2} Q ${middle},${next.y} ${middle+radius},${next.y} L ${next.x},${next.y}`;
+    }
+    return path;
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {

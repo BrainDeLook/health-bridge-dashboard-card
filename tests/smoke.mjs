@@ -86,6 +86,9 @@ card._history["sensor.heart_rate_alice"] = [
 card._render();
 assert.match(card.shadowRoot.innerHTML, /data-current-only="false"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-point"/);
+assert.match(card.shadowRoot.innerHTML, /class="heart-center"/);
+assert.match(card.shadowRoot.innerHTML, /class="heart-trace"/);
+assert.doesNotMatch(card.shadowRoot.innerHTML, /<polyline[^>]+stroke="var\(--hb-red\)"/);
 assert.match(card.shadowRoot.innerHTML, />84 bpm<\/title>/);
 assert.match(card.shadowRoot.innerHTML, />100 bpm<\/title>/);
 let requestedHistoryPath = "";
