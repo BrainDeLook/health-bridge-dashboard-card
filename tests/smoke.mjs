@@ -7,11 +7,12 @@ globalThis.HTMLElement = class {
     this.shadowRoot = {
       innerHTML: "",
       querySelectorAll: () => [],
+      appendChild: (child) => { this.shadowRoot.child = child; },
     };
     return this.shadowRoot;
   }
 
-  dispatchEvent() {}
+  dispatchEvent(event) { this.lastEvent = event; }
 };
 
 globalThis.customElements = {
@@ -20,6 +21,9 @@ globalThis.customElements = {
 };
 
 globalThis.window = { customCards: [] };
+globalThis.CustomEvent = class {
+  constructor(type, options) { this.type = type; Object.assign(this, options); }
+};
 globalThis.localStorage = {
   values: new Map(),
   getItem(key) { return this.values.get(key) ?? null; },
@@ -30,6 +34,43 @@ await import("../dist/health-bridge-dashboard-card.js");
 
 const Card = customElements.get("health-bridge-dashboard-card");
 assert.ok(Card, "the custom element should be registered");
+assert.ok(customElements.get("health-bridge-dashboard-card-editor"), "the dynamic graphical editor should be registered");
+assert.equal(typeof Card.getConfigElement, "function");
+const discoveredProfiles = Card.discoverProfiles({ states: {
+  "sensor.steps_alice": {},
+  "sensor.heart_rate_alice": {},
+  "sensor.steps_bob": {},
+  "sensor.unrelated_temperature": {},
+} });
+assert.deepEqual(discoveredProfiles, [
+  { id: "alice", count: 2, entities: { steps: "sensor.steps_alice", heart_rate: "sensor.heart_rate_alice" } },
+  { id: "bob", count: 1, entities: { steps: "sensor.steps_bob" } },
+]);
+globalThis.document = {
+  createElement(name) {
+    const Constructor = registry.get(name);
+    if (Constructor) return new Constructor();
+    return {
+      listeners: {},
+      addEventListener(type, listener) { this.listeners[type] = listener; },
+    };
+  },
+};
+const editor = Card.getConfigElement();
+editor.setConfig({ type: "custom:health-bridge-dashboard-card", entities: {} });
+editor.hass = { language: "en", states: {
+  "sensor.steps_alice": {},
+  "sensor.heart_rate_alice": {},
+} };
+assert.equal(editor._form.schema[0].name, "_profile_import");
+editor._form.listeners["value-changed"]({ detail: { value: {
+  type: "custom:health-bridge-dashboard-card", entities: {}, _profile_import: "alice",
+} } });
+assert.equal(editor.lastEvent.type, "config-changed");
+assert.equal(editor.lastEvent.detail.config.user_id, "alice");
+assert.deepEqual(editor.lastEvent.detail.config.entities, {
+  steps: "sensor.steps_alice", heart_rate: "sensor.heart_rate_alice",
+});
 const configForm = Card.getConfigForm();
 const entityPanel = configForm.schema.find((field) => field.name === "entities");
 assert.ok(entityPanel, "the graphical editor should include an entity mapping panel");
