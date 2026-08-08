@@ -23,7 +23,7 @@ Mushroom, card-mod, or any other frontend dependency.
 - Current activity, sleep, cardiovascular, and body-composition metrics
 - Activity and heart-rate accordion with equal responsive chart heights
 - Stable dual-axis activity scaling for steps and active calories
-- Dashed cardiogram-style heart-rate trace with a centered reference line and visible measurement markers
+- Linear point-to-point heart-rate graph with a centered dashed reference line and visible measurement markers
 - BPM marker tooltips show when each value was received by Home Assistant
 - Larger chart titles, legends, axes and receipt-time tooltips for steps and active calories
 - Native Home Assistant graphical card editor with entity pickers
@@ -134,10 +134,10 @@ The heart-rate chart
 uses every recorded state change from the last 24 hours and marks previous BPM
 measurements as individual points. If Recorder returns no earlier samples, the
 card also keeps live heart-rate changes observed while the dashboard is open.
-The dashed trace holds each measured value until the next reading and uses a
-soft cardiogram-style transition instead of straight point-to-point segments.
-A second dashed reference line stays centered in the plot. With only one value,
-the trace remains horizontal and shows a numeric marker. Hover a BPM marker, or
+The heart trace connects each recorded BPM measurement directly to the next one
+with a straight vector and does not extend the last value artificially to the
+right edge. A dashed reference line stays centered in the plot. With only one
+value, the fallback trace remains horizontal and shows a numeric marker. Hover a BPM marker, or
 focus/tap it on a touch device, to see the date and time when Home Assistant
 received that state. This is the receipt time, not the original medical
 measurement time. The heart and activity charts use the same coordinate scale,
