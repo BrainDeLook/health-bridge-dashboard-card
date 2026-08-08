@@ -81,6 +81,26 @@ assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded
 card.setConfig({ language: "en", show_activity: false });
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+
+let renderCount = 0;
+const render = card._render.bind(card);
+card._render = () => { renderCount += 1; return render(); };
+card.hass = {
+  ...card._hass,
+  states: {
+    ...card._hass.states,
+    "sensor.unrelated_temperature": { state: "21", attributes: { unit_of_measurement: "°C" } },
+  },
+};
+assert.equal(renderCount, 0, "unrelated Home Assistant state changes must not rerender the card");
+card.hass = {
+  ...card._hass,
+  states: {
+    ...card._hass.states,
+    "sensor.heart_rate_alice": { state: "73", attributes: { unit_of_measurement: "bpm" } },
+  },
+};
+assert.equal(renderCount, 1, "a displayed Health Bridge value change must rerender the card");
 assert.deepEqual(card.getGridOptions(), { columns: 12, min_columns: 4 });
 assert.equal(window.customCards[0].type, "health-bridge-dashboard-card");
 
