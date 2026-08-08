@@ -93,6 +93,8 @@ assert.match(card.shadowRoot.innerHTML, /class="heart-point"/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-tooltip"/);
 assert.match(card.shadowRoot.innerHTML, /Received:/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-sample heart-sample" tabindex="0"/);
+assert.match(card.shadowRoot.innerHTML, /data-tooltip-size="large"/);
+assert.match(card.shadowRoot.innerHTML, /\.heart-sample \.tooltip-value \{ font-size:17px/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-center"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-trace"/);
 assert.doesNotMatch(card.shadowRoot.innerHTML, /<polyline[^>]+stroke="var\(--hb-red\)"/);
