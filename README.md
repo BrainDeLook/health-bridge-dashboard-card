@@ -23,7 +23,7 @@ Mushroom, card-mod, or any other frontend dependency.
 - Current activity, sleep, cardiovascular, and body-composition metrics
 - Activity and heart-rate accordion with equal responsive chart heights
 - Stable dual-axis activity scaling for steps and active calories
-- Visible heart-rate change markers, with a current-value fallback when Recorder has only one point
+- Dashed cardiogram-style heart-rate trace with a centered reference line and visible measurement markers
 - Native Home Assistant graphical card editor with entity pickers
 - Seven-day activity chart
 - Stacked sleep-stage chart
@@ -121,7 +121,10 @@ calories are scaled against `calorie_goal` on the right. The heart-rate chart
 uses every recorded state change from the last 24 hours and marks previous BPM
 measurements as individual points. If Recorder returns no earlier samples, the
 card also keeps live heart-rate changes observed while the dashboard is open.
-With only one value, it shows a dashed current-value line and numeric marker.
+The dashed trace holds each measured value until the next reading and uses a
+soft cardiogram-style transition instead of straight point-to-point segments.
+A second dashed reference line stays centered in the plot. With only one value,
+the trace remains horizontal and shows a numeric marker.
 
 The activity chart is expanded the first time the card is loaded and the
 heart-rate chart is collapsed. Either chart header acts as the same toggle:
