@@ -366,8 +366,6 @@ class HealthBridgeDashboardCard extends HTMLElement {
       .chart-tooltip rect { fill:var(--ha-card-background,var(--card-background-color)); stroke:var(--divider-color); stroke-width:1; }
       .chart-tooltip .tooltip-value { fill:var(--primary-text-color); font-size:16px; font-weight:700; }
       .chart-tooltip .tooltip-time { fill:var(--secondary-text-color); font-size:14px; }
-      .heart-sample .tooltip-value { font-size:21px; }
-      .heart-sample .tooltip-time { font-size:18px; }
       .grid-line { stroke:var(--divider-color); stroke-width:1; }
       .empty { padding:34px 12px; text-align:center; }
       .empty ha-icon { width:46px; height:46px; color:var(--secondary-text-color); }
@@ -552,9 +550,9 @@ class HealthBridgeDashboardCard extends HTMLElement {
   _heartChart() {
     const points=this._historyPoints("heart_rate").filter((p)=>p.t>=Date.now()-86400000).sort((a,b)=>a.t-b.t);
     if (!points.length) return "";
-    // Match the activity chart's 8:3 aspect ratio so both expanded blocks
-    // occupy exactly the same responsive height at every card width.
-    const width=720,height=270,left=44,right=14,top=12,bottom=32,plotW=width-left-right,plotH=height-top-bottom;
+    // Use the same coordinate system as the activity chart so axes, labels,
+    // markers and tooltips have the same visible size in both expanded blocks.
+    const width=560,height=210,left=40,right=42,top=12,bottom=32,plotW=width-left-right,plotH=height-top-bottom;
     const values=points.map((p)=>p.v),min=Math.max(30,Math.floor(Math.min(...values)/10)*10-10),max=Math.max(min+20,Math.ceil(Math.max(...values)/10)*10+10);
     const start=Date.now()-86400000,end=Date.now();
     const current=points[points.length-1],currentY=top+plotH-(current.v-min)/(max-min)*plotH;
@@ -589,12 +587,11 @@ class HealthBridgeDashboardCard extends HTMLElement {
   _chartSample(point,x,y,width,valueLabel,className,mark) {
     const time=new Intl.DateTimeFormat(this._lang(),{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(point.t));
     const received=`${this._t("received")}: ${time}`;
-    const isHeart=className==="heart-sample";
-    const tooltipWidth=isHeart?284:220,tooltipHeight=isHeart?64:50;
-    const tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-11:x+11,tooltipY=y<(isHeart?84:68)?y+12:y-tooltipHeight-10;
-    const valueY=isHeart?24:19,timeY=isHeart?51:41,textX=isHeart?15:12;
+    const tooltipWidth=220,tooltipHeight=50;
+    const tooltipX=x>width-tooltipWidth-12?x-tooltipWidth-11:x+11,tooltipY=y<68?y+12:y-tooltipHeight-10;
+    const valueY=19,timeY=41,textX=12;
     const label=`${valueLabel}, ${received}`;
-    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" data-tooltip-size="${isHeart?"large":"normal"}" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"/><text class="tooltip-value" x="${textX}" y="${valueY}">${this._escape(valueLabel)}</text><text class="tooltip-time" x="${textX}" y="${timeY}">${this._escape(received)}</text></g></g>`;
+    return `<g class="chart-sample ${className}" tabindex="0" role="img" aria-label="${this._escape(label)}">${mark}<g class="chart-tooltip" data-tooltip-size="normal" transform="translate(${tooltipX} ${tooltipY})"><rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"/><text class="tooltip-value" x="${textX}" y="${valueY}">${this._escape(valueLabel)}</text><text class="tooltip-time" x="${textX}" y="${timeY}">${this._escape(received)}</text></g></g>`;
   }
 
   _grid(width,height,left,right,top,bottom,max,min=0) {

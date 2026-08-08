@@ -121,7 +121,7 @@ assert.match(card.shadowRoot.innerHTML, /\.axis \{ fill:var\(--secondary-text-co
 card._toggleChart("heart");
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
-assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 720 270"/);
+assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 560 210"/);
 assert.match(card.shadowRoot.innerHTML, /data-current-only="true"/);
 assert.match(card.shadowRoot.innerHTML, />72 bpm<\/text>/);
 card._history["sensor.heart_rate_alice"] = [
@@ -134,9 +134,7 @@ assert.match(card.shadowRoot.innerHTML, /class="heart-point"/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-tooltip"/);
 assert.match(card.shadowRoot.innerHTML, /Received:/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-sample heart-sample" tabindex="0"/);
-assert.match(card.shadowRoot.innerHTML, /data-tooltip-size="large"/);
 assert.match(card.shadowRoot.innerHTML, /\.chart-tooltip \.tooltip-value \{[^}]+font-size:16px/);
-assert.match(card.shadowRoot.innerHTML, /\.heart-sample \.tooltip-value \{ font-size:21px/);
 assert.match(card.shadowRoot.innerHTML, /data-tooltip-size="normal"[^>]+translate/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-center"/);
 assert.match(card.shadowRoot.innerHTML, /class="heart-trace"/);

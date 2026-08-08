@@ -140,8 +140,8 @@ A second dashed reference line stays centered in the plot. With only one value,
 the trace remains horizontal and shows a numeric marker. Hover a BPM marker, or
 focus/tap it on a touch device, to see the date and time when Home Assistant
 received that state. This is the receipt time, not the original medical
-measurement time. The heart tooltip is scaled separately so it remains as large
-and readable as the activity tooltips despite the wider heart-chart view box.
+measurement time. The heart and activity charts use the same coordinate scale,
+so their axes, labels, markers and tooltips have the same visible size.
 
 The activity chart is expanded the first time the card is loaded and the
 heart-rate chart is collapsed. Either chart header acts as the same toggle:
