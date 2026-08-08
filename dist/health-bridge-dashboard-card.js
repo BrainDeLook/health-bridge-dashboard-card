@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.6.0
+/* Health Bridge Dashboard Card v0.6.1
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.6.0";
+const HB_VERSION = "0.6.1";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -520,6 +520,14 @@ class HealthBridgeDashboardCard extends HTMLElement {
     return result;
   }
 
+  _historyTitle(kind) {
+    const days=Math.max(2,Math.min(31,Number(this.config.days)||7));
+    if(this._lang()!=="ru") return `${kind==="activity"?"Activity":"Sleep stages"} · ${days} ${days===1?"day":"days"}`;
+    const category=new Intl.PluralRules("ru").select(days);
+    const dayWord=category==="one"?"день":category==="few"?"дня":"дней";
+    return `${kind==="activity"?"Активность":"Фазы сна"} · ${days} ${dayWord}`;
+  }
+
   _activityChart() {
     const steps = this._daily("steps"), calories = this._daily("active_calories");
     const width = 560, height = 210, left = 40, right = 42, top = 12, bottom = 32;
@@ -533,7 +541,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const dots = calories.map((item,i)=>{if(!item.has)return "";const x=left+i*slot+slot*.5,y=top+plotH-item.value/maxCal*plotH;const mark=`<circle class="chart-hit" cx="${x}" cy="${y}" r="11"/><circle class="calorie-point" cx="${x}" cy="${y}" r="4" fill="var(--hb-orange)"/>`;return this._chartSample(item,x,y,width,`${item.value.toFixed(0)} kcal`,"activity-calorie",mark);}).join("");
     const legend = `<span class="legend"><span><i style="--dot:var(--hb-blue)"></i>${this._t("steps")}</span><span><i style="--dot:var(--hb-orange)"></i>kcal</span></span>`;
     const svg = `<svg viewBox="0 0 ${width} ${height}" role="img">${this._dualGrid(width,height,left,right,top,bottom,maxSteps,maxCal)}${bars}<polyline points="${linePoints}" fill="none" stroke="var(--hb-orange)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}${this._dayLabels(steps,width,height,left,right)}</svg>`;
-    return this._collapsibleChart("activity", this._t("activity"), legend, svg);
+    return this._collapsibleChart("activity", this._historyTitle("activity"), legend, svg);
   }
 
   _sleepChart() {
@@ -544,7 +552,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
     const colors=["#3949ab","#7986cb","#26c6da"];
     let bars="";
     deep.forEach((_,i)=>{ let y=top+plotH; [deep[i],core[i],rem[i]].forEach((item,j)=>{ const h=(item.has?item.value:0)/max*plotH; y-=h; bars+=`<rect x="${left+i*slot+slot*.2}" y="${y}" width="${slot*.6}" height="${Math.max(0,h)}" rx="${j===2?3:0}" fill="${colors[j]}"><title>${item.value.toFixed(1)} h</title></rect>`; }); });
-    return `<section class="chart"><div class="chart-title"><span>${this._t("sleep")}</span><span class="legend"><span><i style="--dot:${colors[0]}"></i>${this._t("deep")}</span><span><i style="--dot:${colors[1]}"></i>${this._t("core")}</span><span><i style="--dot:${colors[2]}"></i>${this._t("rem")}</span></span></div><svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,max)}${bars}${this._dayLabels(deep,width,height,left,right)}</svg></section>`;
+    return `<section class="chart" data-chart="sleep"><div class="chart-title"><span>${this._historyTitle("sleep")}</span><span class="legend"><span><i style="--dot:${colors[0]}"></i>${this._t("deep")}</span><span><i style="--dot:${colors[1]}"></i>${this._t("core")}</span><span><i style="--dot:${colors[2]}"></i>${this._t("rem")}</span></span></div><svg viewBox="0 0 ${width} ${height}" role="img">${this._grid(width,height,left,right,top,bottom,max)}${bars}${this._dayLabels(deep,width,height,left,right)}</svg></section>`;
   }
 
   _heartChart() {

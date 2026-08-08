@@ -186,4 +186,44 @@ assert.equal(renderCount, 1, "a displayed Health Bridge value change must rerend
 assert.deepEqual(card.getGridOptions(), { columns: 12, min_columns: 4 });
 assert.equal(window.customCards[0].type, "health-bridge-dashboard-card");
 
+const sleepCard = new Card();
+sleepCard.setConfig({ language: "en", days: 3, show_activity: false, show_heart_rate: false, show_body: false });
+sleepCard.hass = {
+  language: "en",
+  states: {
+    "sensor.sleep_deep_hours_sleeper": { state: "1.5", attributes: { unit_of_measurement: "h" } },
+    "sensor.sleep_core_hours_sleeper": { state: "4.2", attributes: { unit_of_measurement: "h" } },
+    "sensor.sleep_rem_hours_sleeper": { state: "1.8", attributes: { unit_of_measurement: "h" } },
+  },
+  callApi: async () => [],
+};
+await new Promise((resolve) => setTimeout(resolve, 0));
+assert.match(sleepCard.shadowRoot.innerHTML, /data-chart="sleep"/);
+assert.match(sleepCard.shadowRoot.innerHTML, /Sleep stages · 3 days/);
+assert.match(sleepCard.shadowRoot.innerHTML, />1\.5 h<\/title>/);
+assert.match(sleepCard.shadowRoot.innerHTML, />4\.2 h<\/title>/);
+assert.match(sleepCard.shadowRoot.innerHTML, />1\.8 h<\/title>/);
+assert.match(sleepCard.shadowRoot.innerHTML, /fill="#3949ab"/);
+assert.match(sleepCard.shadowRoot.innerHTML, /fill="#7986cb"/);
+assert.match(sleepCard.shadowRoot.innerHTML, /fill="#26c6da"/);
+assert.doesNotMatch(sleepCard.shadowRoot.innerHTML, /(?:NaN|Infinity)/);
+const previousSleep = Date.now() - 86400000;
+sleepCard._history["sensor.sleep_deep_hours_sleeper"] = [{ t: previousSleep, v: 2.0 }];
+sleepCard._history["sensor.sleep_core_hours_sleeper"] = [{ t: previousSleep, v: 3.8 }];
+sleepCard._history["sensor.sleep_rem_hours_sleeper"] = [{ t: previousSleep, v: 1.6 }];
+sleepCard._render();
+assert.match(sleepCard.shadowRoot.innerHTML, />2\.0 h<\/title>/);
+assert.match(sleepCard.shadowRoot.innerHTML, />3\.8 h<\/title>/);
+assert.match(sleepCard.shadowRoot.innerHTML, />1\.6 h<\/title>/);
+
+sleepCard.setConfig({ language: "ru", days: 3, show_activity: false, show_heart_rate: false, show_body: false,
+  entities: { sleep_deep_hours: "sensor.sleep_deep_hours_sleeper" } });
+sleepCard.hass = {
+  language: "ru",
+  states: { "sensor.sleep_deep_hours_sleeper": { state: "1.5", attributes: { unit_of_measurement: "h" } } },
+  callApi: async () => [],
+};
+assert.match(sleepCard.shadowRoot.innerHTML, /Фазы сна · 3 дня/);
+assert.doesNotMatch(sleepCard.shadowRoot.innerHTML, /(?:NaN|Infinity)/);
+
 console.log("Smoke test passed");
