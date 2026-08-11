@@ -1,9 +1,9 @@
-/* Health Bridge Dashboard Card v0.6.2
+/* Health Bridge Dashboard Card v0.6.3
  * A dependency-free Lovelace card for gregt1993/Health_Bridge.
  * MIT License
  */
 
-const HB_VERSION = "0.6.2";
+const HB_VERSION = "0.6.3";
 const HB_METRICS = [
   "last_sync_time", "last_apple_workout", "steps", "active_calories",
   "exercise_time", "distance", "sleep_duration", "sleep_deep_hours",
@@ -318,7 +318,7 @@ class HealthBridgeDashboardCard extends HTMLElement {
 
   _styles() {
     return `<style>
-      :host { display:block; container-type:inline-size; --hb-blue:#4c8dff; --hb-orange:#ff8a4c; --hb-red:#f05b67; --hb-cyan:#35b9c7; --hb-indigo:#6d66d8; }
+      :host { display:block; container-type:inline-size; overflow-anchor:none; --hb-blue:#4c8dff; --hb-orange:#ff8a4c; --hb-red:#f05b67; --hb-cyan:#35b9c7; --hb-indigo:#6d66d8; }
       ha-card { overflow:hidden; padding:14px; color:var(--primary-text-color); background:var(--ha-card-background,var(--card-background-color)); }
       * { box-sizing:border-box; }
       .header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
@@ -452,7 +452,12 @@ class HealthBridgeDashboardCard extends HTMLElement {
     if (!hasActivity || !hasHeart) return;
     this._expandedChart = this._expandedChart === "activity" ? "heart" : "activity";
     try { globalThis.localStorage?.setItem(this._chartStateKey, this._expandedChart); } catch (_) { /* Storage can be disabled. */ }
-    this._render();
+    this.shadowRoot.querySelectorAll("[data-chart-toggle]").forEach((element) => {
+      const expanded = element.dataset.chartToggle === this._expandedChart;
+      element.setAttribute("aria-expanded", String(expanded));
+      const body = element.nextElementSibling;
+      if (body?.classList.contains("chart-body")) body.hidden = !expanded;
+    });
   }
 
   _collapsibleChart(kind, title, legend, svg, wide = false) {

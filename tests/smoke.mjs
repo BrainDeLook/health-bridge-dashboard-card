@@ -110,6 +110,7 @@ assert.match(card.shadowRoot.innerHTML, /Health overview/);
 assert.match(card.shadowRoot.innerHTML, /8,426/);
 assert.match(card.shadowRoot.innerHTML, /Profile: alice/);
 assert.match(card.shadowRoot.innerHTML, /container-type:inline-size/);
+assert.match(card.shadowRoot.innerHTML, /overflow-anchor:none/);
 assert.match(card.shadowRoot.innerHTML, /@container \(max-width:430px\)/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
 assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="false"/);
@@ -118,12 +119,16 @@ assert.match(card.shadowRoot.innerHTML, /data-axis="steps"[^>]+fill:var\(--hb-bl
 assert.match(card.shadowRoot.innerHTML, /class="chart-sample activity-step"/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-sample activity-calorie"/);
 assert.match(card.shadowRoot.innerHTML, /\.axis \{ fill:var\(--secondary-text-color\); font-size:12px/);
+const interactionRender = card._render.bind(card);
+let interactionRenderCount = 0;
+card._render = () => { interactionRenderCount += 1; return interactionRender(); };
 card._toggleChart("heart");
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+assert.equal(card._expandedChart, "heart");
+assert.equal(interactionRenderCount, 0, "switching charts must not replace the card DOM");
 assert.match(card.shadowRoot.innerHTML, /viewBox="0 0 560 210"/);
 assert.match(card.shadowRoot.innerHTML, /data-current-only="true"/);
 assert.match(card.shadowRoot.innerHTML, />72 bpm<\/text>/);
+card._render = interactionRender;
 card._history["sensor.heart_rate_alice"] = [
   { t: Date.now() - 7200000, v: 84 },
   { t: Date.now() - 3600000, v: 100 },
@@ -157,15 +162,13 @@ assert.match(requestedHistoryPath, /end_time=/);
 assert.deepEqual(card._history["sensor.heart_rate_alice"].map((point) => point.v), [84, 100]);
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "heart");
 card._toggleChart("heart");
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="true"/);
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="false"/);
+assert.equal(card._expandedChart, "activity");
 assert.equal(globalThis.localStorage.getItem("health-bridge-dashboard-card:expanded:alice"), "activity");
 card._toggleChart("activity");
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="activity" aria-expanded="false"/);
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+assert.equal(card._expandedChart, "heart");
 card.setConfig({ language: "en", show_activity: false });
 card._toggleChart("heart");
-assert.match(card.shadowRoot.innerHTML, /data-chart-toggle="heart" aria-expanded="true"/);
+assert.equal(card._expandedChart, "heart");
 
 let renderCount = 0;
 const render = card._render.bind(card);
