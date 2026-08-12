@@ -135,7 +135,8 @@ card._history["sensor.heart_rate_alice"] = [
 ];
 card._render();
 assert.match(card.shadowRoot.innerHTML, /data-current-only="false"/);
-assert.match(card.shadowRoot.innerHTML, /class="heart-point"/);
+assert.doesNotMatch(card.shadowRoot.innerHTML, /class="heart-point"/);
+assert.match(card.shadowRoot.innerHTML, /class="chart-hit"/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-tooltip"/);
 assert.match(card.shadowRoot.innerHTML, /Received:/);
 assert.match(card.shadowRoot.innerHTML, /class="chart-sample heart-sample" tabindex="0"/);
